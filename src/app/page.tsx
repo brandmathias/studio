@@ -192,9 +192,21 @@ export default function DashboardPage() {
   };
 
   const handleSendNotification = (customer: Customer) => {
+    const message = `Yth. ${customer.name}, transaksi Anda di Pegadaian dgn No. Ref ${customer.id} jatuh tempo pd ${format(new Date(customer.due_date), 'dd MMMM yyyy')}. Mohon segera lakukan pembayaran.`;
+    const encodedMessage = encodeURIComponent(message);
+    
+    // Format number to remove leading '0' and add country code '62'
+    const formattedPhoneNumber = customer.phone_number.startsWith('0') 
+      ? `62${customer.phone_number.substring(1)}` 
+      : customer.phone_number;
+
+    const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+
     toast({
-      title: `Notification Sent to ${customer.name}`,
-      description: `Yth. ${customer.name}, transaksi Anda di Pegadaian dgn No. Ref ${customer.id} jatuh tempo pd ${format(new Date(customer.due_date), 'dd MMMM yyyy')}. Mohon segera lakukan pembayaran.`,
+      title: 'Redirecting to WhatsApp',
+      description: `Preparing message for ${customer.name}...`,
     });
   };
   
@@ -369,3 +381,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
