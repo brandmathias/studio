@@ -120,6 +120,16 @@ const MOCK_CUSTOMERS: Customer[] = [
     loan_value: 500000,
     has_been_late_before: false,
   },
+  {
+    id: 'PGD-007',
+    name: 'Brando Mathias Zusriadi',
+    phone_number: '082188769679',
+    due_date: format(addDays(new Date(), 2), 'yyyy-MM-dd'),
+    transaction_type: 'gadai',
+    priority: 'none',
+    loan_value: 8000000,
+    has_been_late_before: false,
+  },
 ];
 
 export default function DashboardPage() {
