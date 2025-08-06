@@ -1,0 +1,10 @@
+export interface Customer {
+  id: string;
+  name: string;
+  phone_number: string;
+  due_date: string; // Format: YYYY-MM-DD
+  transaction_type: 'gadai' | 'angsuran';
+  priority: 'tinggi' | 'sedang' | 'rendah' | 'none';
+  loan_value: number;
+  has_been_late_before: boolean;
+}
