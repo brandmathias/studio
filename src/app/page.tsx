@@ -64,6 +64,7 @@ const priorityIndonesianMap: Record<string, Customer['priority']> = {
   low: 'rendah',
 };
 
+// Enhanced Mock Data to represent different customer segments
 const MOCK_CUSTOMERS: Customer[] = [
   {
     id: 'PGD-007',
@@ -74,6 +75,7 @@ const MOCK_CUSTOMERS: Customer[] = [
     priority: 'none',
     loan_value: 8000000,
     has_been_late_before: false,
+    segment: 'none' // To be filled by AI
   },
   {
     id: 'PGD-008',
@@ -84,8 +86,43 @@ const MOCK_CUSTOMERS: Customer[] = [
     priority: 'none',
     loan_value: 3000000,
     has_been_late_before: false,
+    segment: 'none' // To be filled by AI
+  },
+  {
+    id: 'PGD-001',
+    name: 'Agus Setiawan',
+    phone_number: '081234567890',
+    due_date: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
+    transaction_type: 'gadai',
+    priority: 'none',
+    loan_value: 15000000, // High value
+    has_been_late_before: true,
+    segment: 'none'
+  },
+  {
+    id: 'PGD-002',
+    name: 'Budi Hartono',
+    phone_number: '081298765432',
+    due_date: format(addDays(new Date(), 20), 'yyyy-MM-dd'),
+    transaction_type: 'gadai',
+    priority: 'none',
+    loan_value: 5000000,
+    has_been_late_before: false,
+    segment: 'none'
+  },
+  {
+    id: 'PGD-003',
+    name: 'Citra Lestari',
+    phone_number: '085611223344',
+    due_date: format(subDays(new Date(), 5), 'yyyy-MM-dd'), // Overdue
+    transaction_type: 'angsuran',
+    priority: 'none',
+    loan_value: 2500000,
+    has_been_late_before: true,
+    segment: 'none'
   },
 ];
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -126,7 +163,9 @@ export default function DashboardPage() {
             hasBeenLateBefore: customer.has_been_late_before,
           });
           const newPriority = priorityIndonesianMap[result.priority] || 'rendah';
-          return { ...customer, priority: newPriority };
+          // Placeholder for segmentation logic to be added later
+          const newSegment: Customer['segment'] = customer.loan_value > 10000000 ? 'Platinum' : customer.has_been_late_before ? 'Berisiko' : 'Reguler';
+          return { ...customer, priority: newPriority, segment: newSegment };
         })
       );
       setCustomers(updatedCustomers);
@@ -209,10 +248,8 @@ export default function DashboardPage() {
 
     const customersToNotify = customers.filter((c) => selectedCustomers.has(c.id));
     
-    let notifiedCount = 0;
     customersToNotify.forEach((customer) => {
       handleSendNotification(customer);
-      notifiedCount++;
     });
 
     setSelectedCustomers(new Set());
@@ -239,6 +276,13 @@ export default function DashboardPage() {
         { name: 'Rendah', value: counts.rendah || 0, color: 'hsl(var(--secondary))' },
     ].filter(d => d.value > 0);
   }, [customers]);
+
+  const segmentVariantMap: Record<string, VariantProps<typeof Badge>['variant']> = {
+      'Platinum': 'default',
+      'Reguler': 'secondary',
+      'Berisiko': 'destructive',
+      'none': 'outline',
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
@@ -400,7 +444,7 @@ export default function DashboardPage() {
                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
                             {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-                            Auto-Prioritize
+                            Auto-Prioritize & Segment
                         </Button>
                         <Button onClick={handleNotifySelected} className="w-full sm:w-auto" disabled={selectedCustomers.size === 0}>
                             <Send className="mr-2 h-4 w-4" />
@@ -420,6 +464,7 @@ export default function DashboardPage() {
                             />
                           </TableHead>
                           <TableHead>Customer</TableHead>
+                          <TableHead>Segment</TableHead>
                           <TableHead className="hidden md:table-cell">Transaction</TableHead>
                           <TableHead>Due Date</TableHead>
                           <TableHead>Priority</TableHead>
@@ -429,7 +474,7 @@ export default function DashboardPage() {
                     <TableBody>
                         {filteredCustomers.length === 0 ? (
                              <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
+                                <TableCell colSpan={7} className="h-24 text-center">
                                     No customers found.
                                 </TableCell>
                             </TableRow>
@@ -446,6 +491,11 @@ export default function DashboardPage() {
                                 <TableCell>
                                 <div className="font-medium">{customer.name}</div>
                                 <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
+                                </TableCell>
+                                 <TableCell>
+                                    <Badge variant={segmentVariantMap[customer.segment] || 'outline'} className="capitalize">
+                                        {customer.segment === 'none' ? 'N/A' : customer.segment}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell">
                                     <div className="font-medium capitalize">{customer.transaction_type}</div>
@@ -482,5 +532,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

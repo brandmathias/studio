@@ -7,4 +7,5 @@ export interface Customer {
   priority: 'tinggi' | 'sedang' | 'rendah' | 'none';
   loan_value: number;
   has_been_late_before: boolean;
+  segment: 'Platinum' | 'Reguler' | 'Berisiko' | 'none';
 }
