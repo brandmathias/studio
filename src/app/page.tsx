@@ -186,11 +186,8 @@ export default function DashboardPage() {
       description: `Preparing notifications for ${filteredCustomers.length} customer(s). Please allow pop-ups.`,
     });
 
-    filteredCustomers.forEach((customer, index) => {
-      // Add a small delay between opening tabs to prevent browser from blocking them
-      setTimeout(() => {
-        handleSendNotification(customer);
-      }, index * 300);
+    filteredCustomers.forEach((customer) => {
+      handleSendNotification(customer);
     });
   };
   
