@@ -40,6 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Scale,
   LogOut,
@@ -87,6 +88,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [customers, setCustomers] = React.useState<Customer[]>(MOCK_CUSTOMERS);
+  const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const [priorityFilter, setPriorityFilter] = React.useState('all');
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
@@ -151,6 +153,25 @@ export default function DashboardPage() {
         !dateFilter ? true : isSameDay(new Date(customer.due_date), dateFilter)
       );
   }, [customers, priorityFilter, dateFilter]);
+  
+  const handleSelectCustomer = (customerId: string, checked: boolean) => {
+    const newSelection = new Set(selectedCustomers);
+    if (checked) {
+      newSelection.add(customerId);
+    } else {
+      newSelection.delete(customerId);
+    }
+    setSelectedCustomers(newSelection);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allCustomerIds = new Set(filteredCustomers.map((c) => c.id));
+      setSelectedCustomers(allCustomerIds);
+    } else {
+      setSelectedCustomers(new Set());
+    }
+  };
 
   const handleSendNotification = (customer: Customer) => {
     const message = `Yth. ${customer.name}, transaksi Anda di Pegadaian dgn No. Ref ${customer.id} jatuh tempo pd ${format(new Date(customer.due_date), 'dd MMMM yyyy')}. Mohon segera lakukan pembayaran.`;
@@ -164,18 +185,13 @@ export default function DashboardPage() {
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
-
-    toast({
-      title: 'Redirecting to WhatsApp',
-      description: `Preparing message for ${customer.name}...`,
-    });
   };
 
-  const handleNotifyAll = () => {
-    if (filteredCustomers.length === 0) {
+  const handleNotifySelected = () => {
+    if (selectedCustomers.size === 0) {
       toast({
-        title: 'No Customers to Notify',
-        description: 'There are no customers matching the current filters.',
+        title: 'No Customers Selected',
+        description: 'Please select at least one customer to notify.',
         variant: 'destructive',
       });
       return;
@@ -183,10 +199,12 @@ export default function DashboardPage() {
 
     toast({
       title: 'Opening WhatsApp Tabs',
-      description: `Preparing notifications for ${filteredCustomers.length} customer(s). Please allow pop-ups.`,
+      description: `Preparing notifications for ${selectedCustomers.size} customer(s). Please allow pop-ups.`,
     });
 
-    filteredCustomers.forEach((customer) => {
+    const customersToNotify = customers.filter((c) => selectedCustomers.has(c.id));
+
+    customersToNotify.forEach((customer) => {
       handleSendNotification(customer);
     });
   };
@@ -305,9 +323,9 @@ export default function DashboardPage() {
                             {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
                             Auto-Prioritize
                         </Button>
-                        <Button onClick={handleNotifyAll} className="w-full sm:w-auto">
+                        <Button onClick={handleNotifySelected} className="w-full sm:w-auto" disabled={selectedCustomers.size === 0}>
                             <Send className="mr-2 h-4 w-4" />
-                            Notify All
+                            Notify Selected ({selectedCustomers.size})
                         </Button>
                     </div>
                 </div>
@@ -315,16 +333,30 @@ export default function DashboardPage() {
                     <Table>
                     <TableHeader>
                         <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead className="hidden md:table-cell">Transaction</TableHead>
-                        <TableHead>Due Date</TableHead>
-                        <TableHead>Priority</TableHead>
-                        <TableHead>Actions</TableHead>
+                          <TableHead className="w-[40px]">
+                            <Checkbox 
+                              checked={selectedCustomers.size > 0 && selectedCustomers.size === filteredCustomers.length}
+                              onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                              aria-label="Select all"
+                            />
+                          </TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead className="hidden md:table-cell">Transaction</TableHead>
+                          <TableHead>Due Date</TableHead>
+                          <TableHead>Priority</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredCustomers.map((customer) => (
-                        <TableRow key={customer.id}>
+                        <TableRow key={customer.id} data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}>
+                             <TableCell>
+                              <Checkbox
+                                checked={selectedCustomers.has(customer.id)}
+                                onCheckedChange={(checked) => handleSelectCustomer(customer.id, !!checked)}
+                                aria-label="Select customer"
+                              />
+                            </TableCell>
                             <TableCell>
                             <div className="font-medium">{customer.name}</div>
                             <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
