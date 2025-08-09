@@ -5,15 +5,14 @@
  *
  * - runChatbot - A function that processes user input and returns a chatbot response.
  * - ChatbotInput - The input type for the runChatbot function.
- * - ChatbotOutput - The return type for the runChatbot function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { Part, GenerationHistory } from 'genkit/experimental';
+import { z } from 'zod';
+import { MessageData } from 'genkit';
 
 const ChatbotInputSchema = z.object({
-  history: z.custom<GenerationHistory>(),
+  history: z.custom<MessageData[]>(),
   message: z.string().describe("The user's current message."),
 });
 export type ChatbotInput = z.infer<typeof ChatbotInputSchema>;

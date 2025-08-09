@@ -9,7 +9,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { runChatbot } from '@/ai/flows/chatbot-flow';
-import { GenerationHistory } from 'genkit/experimental';
+import { MessageData } from 'genkit';
 
 interface Message {
   id: string;
@@ -34,9 +34,7 @@ export default function Chatbot({ onClose }: ChatbotProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    // Scroll to bottom when messages change
     if (scrollAreaRef.current) {
-        // A bit of a hack to get the viewport element from the ScrollArea component
         const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
         if (viewport) {
             viewport.scrollTop = viewport.scrollHeight;
@@ -54,8 +52,7 @@ export default function Chatbot({ onClose }: ChatbotProps) {
       sender: 'user',
     };
 
-    // Construct history before updating state with the new user message
-    const history: GenerationHistory = messages.map(m => ({
+    const history: MessageData[] = messages.map(m => ({
       role: m.sender === 'user' ? 'user' : 'model',
       content: [{text: m.text}]
     }));
