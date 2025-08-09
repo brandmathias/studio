@@ -10,17 +10,19 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { Part, GenerationHistory } from 'genkit';
+import { Part, GenerationHistory } from 'genkit/experimental';
 
 const ChatbotInputSchema = z.object({
   history: z.custom<GenerationHistory>(),
-  question: z.string().describe("The user's current question."),
+  message: z.string().describe("The user's current message."),
 });
 export type ChatbotInput = z.infer<typeof ChatbotInputSchema>;
 
 export async function runChatbot(input: ChatbotInput): Promise<string> {
     const { output } = await ai.generate({
-        prompt: `Anda adalah asisten virtual "GadaiAlert" dari PT Pegadaian. Tugas Anda adalah menjawab pertanyaan nasabah dengan ramah, jelas, dan akurat terkait layanan jatuh tempo.
+        prompt: input.message,
+        history: input.history,
+        system: `Anda adalah asisten virtual "GadaiAlert" dari PT Pegadaian. Tugas Anda adalah menjawab pertanyaan nasabah dengan ramah, jelas, dan akurat terkait layanan jatuh tempo.
 
         Anda hanya boleh menjawab pertanyaan yang berhubungan dengan topik berikut:
         1.  Tanggal jatuh tempo (jawab secara umum, katakan untuk cek aplikasi Pegadaian Digital atau menghubungi cabang untuk info spesifik).
@@ -49,7 +51,9 @@ export async function runChatbot(input: ChatbotInput): Promise<string> {
         RESPONS FALLBACK (jika tidak mengerti atau di luar topik):
         "Maaf, saya kurang mengerti pertanyaan Anda atau topik tersebut di luar lingkup saya. Saya hanya bisa membantu terkait informasi jatuh tempo. Anda bisa mencoba bertanya dengan kalimat lain atau menghubungi admin kami untuk bantuan lebih lanjut."
         `,
-        history: input.history,
     });
+    if (!output) {
+      return "Maaf, saya tidak bisa memproses permintaan Anda saat ini.";
+    }
     return output.text;
 }

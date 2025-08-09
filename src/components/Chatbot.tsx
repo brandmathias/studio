@@ -9,6 +9,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { runChatbot } from '@/ai/flows/chatbot-flow';
+import { GenerationHistory } from 'genkit/experimental';
 
 interface Message {
   id: string;
@@ -53,19 +54,20 @@ export default function Chatbot({ onClose }: ChatbotProps) {
       sender: 'user',
     };
 
+    // Construct history before updating state with the new user message
+    const history: GenerationHistory = messages.map(m => ({
+      role: m.sender === 'user' ? 'user' : 'model',
+      content: [{text: m.text}]
+    }));
+
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const history = messages.map(m => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          content: [{text: m.text}]
-      }));
-
       const botResponseText = await runChatbot({
         history,
-        question: input,
+        message: input,
       });
 
       const botMessage: Message = {
