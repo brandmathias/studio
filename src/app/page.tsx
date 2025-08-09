@@ -131,6 +131,16 @@ const MOCK_CUSTOMERS: Customer[] = [
     loan_value: 8000000,
     has_been_late_before: false,
   },
+  {
+    id: 'PGD-008',
+    name: 'Brenda Febrina Zusriadi',
+    phone_number: '085242041829',
+    due_date: format(addDays(new Date(), 5), 'yyyy-MM-dd'),
+    transaction_type: 'angsuran',
+    priority: 'none',
+    loan_value: 3000000,
+    has_been_late_before: false,
+  },
 ];
 
 export default function DashboardPage() {
