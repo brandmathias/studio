@@ -62,66 +62,6 @@ const priorityIndonesianMap: Record<string, Customer['priority']> = {
 
 const MOCK_CUSTOMERS: Customer[] = [
   {
-    id: 'PGD-001',
-    name: 'Budi Santoso',
-    phone_number: '081234567890',
-    due_date: format(subDays(new Date(), 1), 'yyyy-MM-dd'),
-    transaction_type: 'gadai',
-    priority: 'none',
-    loan_value: 12000000,
-    has_been_late_before: true,
-  },
-  {
-    id: 'PGD-002',
-    name: 'Citra Lestari',
-    phone_number: '081234567891',
-    due_date: format(new Date(), 'yyyy-MM-dd'),
-    transaction_type: 'angsuran',
-    priority: 'none',
-    loan_value: 5000000,
-    has_been_late_before: false,
-  },
-  {
-    id: 'PGD-003',
-    name: 'Agus Wijaya',
-    phone_number: '081234567892',
-    due_date: format(addDays(new Date(), 3), 'yyyy-MM-dd'),
-    transaction_type: 'gadai',
-    priority: 'none',
-    loan_value: 7500000,
-    has_been_late_before: true,
-  },
-  {
-    id: 'PGD-004',
-    name: 'Dewi Anggraini',
-    phone_number: '081234567893',
-    due_date: format(addDays(new Date(), 7), 'yyyy-MM-dd'),
-    transaction_type: 'angsuran',
-    priority: 'none',
-    loan_value: 1500000,
-    has_been_late_before: false,
-  },
-  {
-    id: 'PGD-005',
-    name: 'Eko Prasetyo',
-    phone_number: '081234567894',
-    due_date: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
-    transaction_type: 'gadai',
-    priority: 'none',
-    loan_value: 25000000,
-    has_been_late_before: false,
-  },
-  {
-    id: 'PGD-006',
-    name: 'Fitriani',
-    phone_number: '081234567895',
-    due_date: format(addDays(new Date(), 10), 'yyyy-MM-dd'),
-    transaction_type: 'gadai',
-    priority: 'none',
-    loan_value: 500000,
-    has_been_late_before: false,
-  },
-  {
     id: 'PGD-007',
     name: 'Brando Mathias Zusriadi',
     phone_number: '082188769679',
@@ -287,7 +227,7 @@ export default function DashboardPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem><User className="mr-2 h-4 w-4" />Profile</DropdownMenuItem>
+              <DropdownMenuItem><User className="mr-2 h-4 w-4" />Profile</DropdownMenuSeparator>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
