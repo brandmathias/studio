@@ -52,7 +52,8 @@ export default function Chatbot({ onClose }: ChatbotProps) {
       sender: 'user',
     };
 
-    const history: MessageData[] = messages.map(m => ({
+    // Convert internal message format to Genkit's MessageData format for the history
+    const history: MessageData[] = messages.slice(1).map(m => ({ // Exclude initial message
       role: m.sender === 'user' ? 'user' : 'model',
       content: [{text: m.text}]
     }));
@@ -63,7 +64,7 @@ export default function Chatbot({ onClose }: ChatbotProps) {
 
     try {
       const botResponseText = await runChatbot({
-        history,
+        history: history,
         message: input,
       });
 
