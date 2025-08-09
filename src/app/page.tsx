@@ -49,6 +49,7 @@ import {
   Calendar as CalendarIcon,
   Filter,
   Loader2,
+  Send,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -190,6 +191,16 @@ export default function DashboardPage() {
       setIsPrioritizing(false);
     }
   };
+  
+  const filteredCustomers = React.useMemo(() => {
+    return customers
+      .filter((customer) =>
+        priorityFilter === 'all' ? true : customer.priority === priorityFilter
+      )
+      .filter((customer) =>
+        !dateFilter ? true : isSameDay(new Date(customer.due_date), dateFilter)
+      );
+  }, [customers, priorityFilter, dateFilter]);
 
   const handleSendNotification = (customer: Customer) => {
     const message = `Yth. ${customer.name}, transaksi Anda di Pegadaian dgn No. Ref ${customer.id} jatuh tempo pd ${format(new Date(customer.due_date), 'dd MMMM yyyy')}. Mohon segera lakukan pembayaran.`;
@@ -209,16 +220,29 @@ export default function DashboardPage() {
       description: `Preparing message for ${customer.name}...`,
     });
   };
-  
-  const filteredCustomers = React.useMemo(() => {
-    return customers
-      .filter((customer) =>
-        priorityFilter === 'all' ? true : customer.priority === priorityFilter
-      )
-      .filter((customer) =>
-        !dateFilter ? true : isSameDay(new Date(customer.due_date), dateFilter)
-      );
-  }, [customers, priorityFilter, dateFilter]);
+
+  const handleNotifyAll = () => {
+    if (filteredCustomers.length === 0) {
+      toast({
+        title: 'No Customers to Notify',
+        description: 'There are no customers matching the current filters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Opening WhatsApp Tabs',
+      description: `Preparing notifications for ${filteredCustomers.length} customer(s). Please allow pop-ups.`,
+    });
+
+    filteredCustomers.forEach((customer, index) => {
+      // Add a small delay between opening tabs to prevent browser from blocking them
+      setTimeout(() => {
+        handleSendNotification(customer);
+      }, index * 300);
+    });
+  };
   
   const priorityVariantMap: Record<Customer['priority'], VariantProps<typeof Badge>['variant']> = {
       tinggi: 'destructive',
@@ -329,10 +353,16 @@ export default function DashboardPage() {
                         <Button variant="ghost" onClick={() => { setDateFilter(undefined); setPriorityFilter('all');}}>Clear</Button>
                     }
                     </div>
-                    <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
-                        {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-                        Auto-Prioritize
-                    </Button>
+                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
+                            {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+                            Auto-Prioritize
+                        </Button>
+                        <Button onClick={handleNotifyAll} className="w-full sm:w-auto">
+                            <Send className="mr-2 h-4 w-4" />
+                            Notify All
+                        </Button>
+                    </div>
                 </div>
                 <div className="rounded-lg border">
                     <Table>
@@ -375,11 +405,14 @@ export default function DashboardPage() {
                     </TableBody>
                     </Table>
                 </div>
+                 {filteredCustomers.length > 0 && (
+                  <div className="text-xs text-muted-foreground mt-2">
+                    Browser may ask for permission to open multiple tabs. Please allow it.
+                  </div>
+                )}
             </CardContent>
         </Card>
       </main>
     </div>
   );
 }
-
-    
