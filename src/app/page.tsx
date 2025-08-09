@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
 import { Checkbox } from '@/components/ui/checkbox';
+import Chatbot from '@/components/Chatbot';
 import {
   Scale,
   LogOut,
@@ -52,7 +53,8 @@ import {
   Loader2,
   Send,
   Users,
-  BellRing
+  BellRing,
+  MessageSquare,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -88,39 +90,6 @@ const MOCK_CUSTOMERS: Customer[] = [
     has_been_late_before: false,
     segment: 'none' // To be filled by AI
   },
-  {
-    id: 'PGD-001',
-    name: 'Agus Setiawan',
-    phone_number: '081234567890',
-    due_date: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
-    transaction_type: 'gadai',
-    priority: 'none',
-    loan_value: 15000000, // High value
-    has_been_late_before: true,
-    segment: 'none'
-  },
-  {
-    id: 'PGD-002',
-    name: 'Budi Hartono',
-    phone_number: '081298765432',
-    due_date: format(addDays(new Date(), 20), 'yyyy-MM-dd'),
-    transaction_type: 'gadai',
-    priority: 'none',
-    loan_value: 5000000,
-    has_been_late_before: false,
-    segment: 'none'
-  },
-  {
-    id: 'PGD-003',
-    name: 'Citra Lestari',
-    phone_number: '085611223344',
-    due_date: format(subDays(new Date(), 5), 'yyyy-MM-dd'), // Overdue
-    transaction_type: 'angsuran',
-    priority: 'none',
-    loan_value: 2500000,
-    has_been_late_before: true,
-    segment: 'none'
-  },
 ];
 
 
@@ -133,6 +102,7 @@ export default function DashboardPage() {
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
   const [notificationsSent, setNotificationsSent] = React.useState(0);
+  const [isChatbotOpen, setIsChatbotOpen] = React.useState(false);
 
   React.useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -529,6 +499,20 @@ export default function DashboardPage() {
             </CardContent>
         </Card>
       </main>
+
+       {/* Chatbot Launcher */}
+       <div className="fixed bottom-4 right-4 z-50">
+          <Button
+            size="icon"
+            className="rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90"
+            onClick={() => setIsChatbotOpen(!isChatbotOpen)}
+          >
+            <MessageSquare className="h-6 w-6" />
+          </Button>
+        </div>
+
+        {/* Chatbot Window */}
+        {isChatbotOpen && <Chatbot onClose={() => setIsChatbotOpen(false)} />}
     </div>
   );
 }
