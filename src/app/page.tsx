@@ -34,7 +34,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -51,9 +51,12 @@ import {
   Filter,
   Loader2,
   Send,
+  Users,
+  BellRing
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 const priorityIndonesianMap: Record<string, Customer['priority']> = {
   high: 'tinggi',
@@ -92,6 +95,7 @@ export default function DashboardPage() {
   const [priorityFilter, setPriorityFilter] = React.useState('all');
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
+  const [notificationsSent, setNotificationsSent] = React.useState(0);
 
   React.useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -185,6 +189,7 @@ export default function DashboardPage() {
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+    setNotificationsSent(prev => prev + 1);
   };
 
   const handleNotifySelected = () => {
@@ -203,10 +208,14 @@ export default function DashboardPage() {
     });
 
     const customersToNotify = customers.filter((c) => selectedCustomers.has(c.id));
-
+    
+    let notifiedCount = 0;
     customersToNotify.forEach((customer) => {
       handleSendNotification(customer);
+      notifiedCount++;
     });
+
+    setSelectedCustomers(new Set());
   };
   
   const priorityVariantMap: Record<Customer['priority'], VariantProps<typeof Badge>['variant']> = {
@@ -215,6 +224,21 @@ export default function DashboardPage() {
       rendah: 'outline',
       none: 'outline',
   };
+
+  const priorityData = React.useMemo(() => {
+    const counts = customers.reduce((acc, customer) => {
+      if (customer.priority !== 'none') {
+        acc[customer.priority] = (acc[customer.priority] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<Customer['priority'], number>);
+    
+    return [
+        { name: 'Tinggi', value: counts.tinggi || 0, color: 'hsl(var(--destructive))' },
+        { name: 'Sedang', value: counts.sedang || 0, color: 'hsl(var(--accent))' },
+        { name: 'Rendah', value: counts.rendah || 0, color: 'hsl(var(--secondary))' },
+    ].filter(d => d.value > 0);
+  }, [customers]);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
@@ -254,14 +278,78 @@ export default function DashboardPage() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="flex items-center">
-            <h1 className="text-2xl font-bold tracking-tight font-headline">Customer Dashboard</h1>
+            <h1 className="text-2xl font-bold tracking-tight font-headline">Customer Intelligence Dashboard</h1>
         </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Nasabah</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{customers.length}</div>
+                    <p className="text-xs text-muted-foreground">Jumlah nasabah aktif</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Notifikasi Terkirim</CardTitle>
+                    <BellRing className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{notificationsSent}</div>
+                    <p className="text-xs text-muted-foreground">Total notifikasi dikirim hari ini</p>
+                </CardContent>
+            </Card>
+            <Card className="md:col-span-2">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Distribusi Prioritas</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                    {priorityData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={120}>
+                            <PieChart>
+                                <Pie
+                                    data={priorityData}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={50}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    labelLine={false}
+                                    className="text-xs"
+                                >
+                                {priorityData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'hsl(var(--background))',
+                                        borderColor: 'hsl(var(--border))',
+                                        fontSize: '12px',
+                                        borderRadius: 'var(--radius)'
+                                    }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                     ) : (
+                        <div className="flex items-center justify-center h-[120px] text-sm text-muted-foreground">
+                            Jalankan Auto-Prioritize untuk melihat data.
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+
         <Card>
             <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
                     <div className="flex items-center gap-2 w-full md:w-auto">
                         <Filter className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="font-semibold text-lg">Filters</h3>
+                        <h3 className="font-semibold text-lg">Filters & Actions</h3>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto md:ml-auto">
                     <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -271,22 +359,13 @@ export default function DashboardPage() {
                         <SelectContent>
                             <SelectItem value="all">All Priorities</SelectItem>
                             <SelectItem value="tinggi">
-                                <div className="flex items-center gap-2">
-                                <Badge variant="destructive" className="px-1 py-0">Tinggi</Badge>
-                                <span>Tinggi</span>
-                                </div>
+                                <Badge variant="destructive">Tinggi</Badge>
                             </SelectItem>
                             <SelectItem value="sedang">
-                                <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="px-1 py-0 bg-accent/20 text-accent-foreground border-accent/50">Sedang</Badge>
-                                <span>Sedang</span>
-                                </div>
+                                <Badge variant="secondary" className="bg-accent/20 text-accent-foreground border-accent/50">Sedang</Badge>
                             </SelectItem>
                              <SelectItem value="rendah">
-                                <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="px-1 py-0">Rendah</Badge>
-                                <span>Rendah</span>
-                                </div>
+                                <Badge variant="outline">Rendah</Badge>
                             </SelectItem>
                         </SelectContent>
                     </Select>
@@ -335,7 +414,7 @@ export default function DashboardPage() {
                         <TableRow>
                           <TableHead className="w-[40px]">
                             <Checkbox 
-                              checked={selectedCustomers.size > 0 && selectedCustomers.size === filteredCustomers.length}
+                              checked={selectedCustomers.size > 0 && selectedCustomers.size === filteredCustomers.length && filteredCustomers.length > 0}
                               onCheckedChange={(checked) => handleSelectAll(!!checked)}
                               aria-label="Select all"
                             />
@@ -348,43 +427,51 @@ export default function DashboardPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredCustomers.map((customer) => (
-                        <TableRow key={customer.id} data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}>
-                             <TableCell>
-                              <Checkbox
-                                checked={selectedCustomers.has(customer.id)}
-                                onCheckedChange={(checked) => handleSelectCustomer(customer.id, !!checked)}
-                                aria-label="Select customer"
-                              />
-                            </TableCell>
-                            <TableCell>
-                            <div className="font-medium">{customer.name}</div>
-                            <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell">
-                                <div className="font-medium capitalize">{customer.transaction_type}</div>
-                                <div className="text-sm text-muted-foreground">
-                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(customer.loan_value)}
-                                </div>
-                            </TableCell>
-                            <TableCell>{format(new Date(customer.due_date), 'dd MMMM yyyy')}</TableCell>
-                            <TableCell>
-                            <Badge variant={priorityVariantMap[customer.priority]} className={cn('capitalize', customer.priority === 'sedang' && 'bg-accent/20 text-accent-foreground border-accent/50')}>
-                                {customer.priority === 'none' ? 'N/A' : customer.priority}
-                            </Badge>
-                            </TableCell>
-                            <TableCell>
-                            <Button size="sm" onClick={() => handleSendNotification(customer)}>
-                                <Bell className="mr-2 h-4 w-4" />
-                                Notify
-                            </Button>
-                            </TableCell>
-                        </TableRow>
-                        ))}
+                        {filteredCustomers.length === 0 ? (
+                             <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center">
+                                    No customers found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredCustomers.map((customer) => (
+                            <TableRow key={customer.id} data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}>
+                                <TableCell>
+                                <Checkbox
+                                    checked={selectedCustomers.has(customer.id)}
+                                    onCheckedChange={(checked) => handleSelectCustomer(customer.id, !!checked)}
+                                    aria-label="Select customer"
+                                />
+                                </TableCell>
+                                <TableCell>
+                                <div className="font-medium">{customer.name}</div>
+                                <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
+                                </TableCell>
+                                <TableCell className="hidden md:table-cell">
+                                    <div className="font-medium capitalize">{customer.transaction_type}</div>
+                                    <div className="text-sm text-muted-foreground">
+                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(customer.loan_value)}
+                                    </div>
+                                </TableCell>
+                                <TableCell>{format(new Date(customer.due_date), 'dd MMMM yyyy')}</TableCell>
+                                <TableCell>
+                                <Badge variant={priorityVariantMap[customer.priority]} className={cn('capitalize', customer.priority === 'sedang' && 'bg-accent/20 text-accent-foreground border-accent/50')}>
+                                    {customer.priority === 'none' ? 'N/A' : customer.priority}
+                                </Badge>
+                                </TableCell>
+                                <TableCell>
+                                <Button size="sm" onClick={() => handleSendNotification(customer)}>
+                                    <Bell className="mr-2 h-4 w-4" />
+                                    Notify
+                                </Button>
+                                </TableCell>
+                            </TableRow>
+                            ))
+                        )}
                     </TableBody>
                     </Table>
                 </div>
-                 {filteredCustomers.length > 0 && (
+                 {selectedCustomers.size > 0 && (
                   <div className="text-xs text-muted-foreground mt-2">
                     Browser may ask for permission to open multiple tabs. Please allow it.
                   </div>
@@ -395,3 +482,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
