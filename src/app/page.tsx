@@ -90,6 +90,17 @@ const MOCK_CUSTOMERS: Customer[] = [
     has_been_late_before: false,
     segment: 'none' // To be filled by AI
   },
+  {
+    id: 'PGD-009',
+    name: 'Nathanael Michael Tuwaidan',
+    phone_number: '089681183705',
+    due_date: format(addDays(new Date(), 3), 'yyyy-MM-dd'),
+    transaction_type: 'gadai',
+    priority: 'none',
+    loan_value: 5000000,
+    has_been_late_before: true,
+    segment: 'none' // To be filled by AI
+  },
 ];
 
 
