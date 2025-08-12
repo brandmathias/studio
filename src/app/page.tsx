@@ -40,7 +40,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
-import { createCalendarEvent } from '@/ai/flows/create-calendar-event-flow';
 import { Checkbox } from '@/components/ui/checkbox';
 import Chatbot from '@/components/Chatbot';
 import {
@@ -217,34 +216,43 @@ export default function DashboardPage() {
     setNotificationsSent(prev => prev + 1);
   };
   
-  const handleAddToCalendar = async (customer: Customer) => {
-    toast({
-      title: 'Creating Calendar Event...',
-      description: `Sending reminder to ${customer.email || 'calendar'}.`,
-    });
-    try {
-      const result = await createCalendarEvent({
-        title: `Jatuh Tempo Pegadaian: ${customer.name}`,
-        description: `Transaksi No. Ref ${customer.id} akan jatuh tempo. Mohon segera lakukan pembayaran.`,
-        attendeeEmail: customer.email || '',
-        dueDate: customer.due_date,
-      });
+  const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
+    const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
+    const eventDescription = encodeURIComponent(`Transaksi No. Ref ${customer.id} akan jatuh tempo. Mohon segera lakukan pembayaran.`);
+    
+    // Google Calendar format: YYYYMMDDTHHMMSSZ/YYYYMMDDTHHMMSSZ
+    // We'll make it an all-day event
+    const eventStartDate = format(new Date(customer.due_date), 'yyyyMMdd');
+    const eventEndDate = format(addDays(new Date(customer.due_date), 1), 'yyyyMMdd');
 
-      if (result.success) {
-        toast({
-          title: 'Event Created Successfully',
-          description: `(Simulation) Calendar invite sent for ${customer.name}.`,
-        });
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error: any) {
-      console.error('Failed to create calendar event:', error);
-      toast({
-        title: 'Error Creating Event',
-        description: error.message || 'Could not create calendar event. Check console for details.',
-        variant: 'destructive',
-      });
+    if (type === 'google') {
+      // Basic link, more params can be added.
+      // Adding the guest's email to 'add' parameter
+      const guestEmail = customer.email ? `&add=${encodeURIComponent(customer.email)}` : '';
+      const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}${guestEmail}`;
+      window.open(googleUrl, '_blank');
+    } else if (type === 'ical') {
+        const icalContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'BEGIN:VEVENT',
+            `UID:${customer.id}@pegadaian.co.id`,
+            `DTSTAMP:${format(new Date(), "yyyyMMdd'T'HHmmss'Z'")}`,
+            `DTSTART;VALUE=DATE:${eventStartDate}`,
+            `DTEND;VALUE=DATE:${eventEndDate}`,
+            `SUMMARY:${decodeURIComponent(eventTitle)}`,
+            `DESCRIPTION:${decodeURIComponent(eventDescription)}`,
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+
+        const blob = new Blob([icalContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `pegadaian_reminder_${customer.id}.ics`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
   };
 
@@ -536,10 +544,22 @@ export default function DashboardPage() {
                                       <Bell className="mr-2 h-4 w-4" />
                                       Notify
                                   </Button>
-                                  <Button size="sm" variant="outline" onClick={() => handleAddToCalendar(customer)}>
-                                      <CalendarPlus className="mr-2 h-4 w-4" />
-                                      Calendar
-                                  </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button size="sm" variant="outline">
+                                                <CalendarPlus className="mr-2 h-4 w-4" />
+                                                Calendar
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => handleAddToCalendar(customer, 'google')}>
+                                                Google Calendar
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleAddToCalendar(customer, 'ical')}>
+                                                iCal / Outlook
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                             ))
