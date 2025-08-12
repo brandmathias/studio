@@ -236,13 +236,13 @@ export default function DashboardPage() {
           description: `(Simulation) Calendar invite sent for ${customer.name}.`,
         });
       } else {
-        throw new Error(result.error);
+        throw new Error(result.message);
       }
     } catch (error: any) {
       console.error('Failed to create calendar event:', error);
       toast({
         title: 'Error Creating Event',
-        description: 'Could not create calendar event. Check console for details.',
+        description: error.message || 'Could not create calendar event. Check console for details.',
         variant: 'destructive',
       });
     }
