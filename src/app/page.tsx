@@ -56,8 +56,6 @@ import {
   BellRing,
   MessageSquare,
   CalendarPlus,
-  Upload,
-  Download,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -285,39 +283,6 @@ export default function DashboardPage() {
 
     setSelectedCustomers(new Set());
   };
-
-  const handleImport = () => {
-    toast({
-      title: 'Simulating Import...',
-      description: 'In a real app, you would upload a CSV file. Here, we are adding more mock data.',
-    });
-    const newCustomers: Customer[] = [
-        { id: 'PGD-010', name: 'Dewi Lestari', phone_number: '081234567890', email: 'dewi.lestari@example.com', due_date: format(addDays(new Date(), 5), 'yyyy-MM-dd'), transaction_type: 'angsuran', priority: 'none', loan_value: 1500000, has_been_late_before: false, segment: 'none' },
-        { id: 'PGD-011', name: 'Budi Santoso', phone_number: '085678901234', email: 'budi.santoso@example.com', due_date: format(addDays(new Date(), 1), 'yyyy-MM-dd'), transaction_type: 'gadai', priority: 'none', loan_value: 12000000, has_been_late_before: true, segment: 'none' },
-    ];
-    setCustomers(prev => [...prev, ...newCustomers]);
-  };
-
-  const handleExport = () => {
-    if (customers.length === 0) {
-        toast({ title: 'No Data to Export', variant: 'destructive' });
-        return;
-    }
-    const headers = ['id', 'name', 'phone_number', 'email', 'due_date', 'transaction_type', 'loan_value', 'has_been_late_before', 'priority', 'segment'];
-    const csvContent = [
-        headers.join(','),
-        ...customers.map(c => headers.map(h => (c as any)[h]).join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'customer_data.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({ title: 'Export Successful', description: 'Customer data has been downloaded as CSV.' });
-  };
   
   const priorityVariantMap: Record<Customer['priority'], VariantProps<typeof Badge>['variant']> = {
       tinggi: 'destructive',
@@ -454,17 +419,8 @@ export default function DashboardPage() {
 
         <Card>
             <CardContent className="p-4">
-                <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                    <div className="flex-grow flex flex-col sm:flex-row gap-2">
-                        <Button onClick={handleImport} variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Import from CSV
-                        </Button>
-                        <Button onClick={handleExport} variant="outline">
-                            <Download className="mr-2 h-4 w-4" />
-                            Export to CSV
-                        </Button>
-                    </div>
+                 <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+                     <div className="flex-grow"></div>
                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
                             {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
@@ -641,5 +597,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
