@@ -2,6 +2,7 @@ export interface Customer {
   id: string;
   name: string;
   phone_number: string;
+  email?: string;
   due_date: string; // Format: YYYY-MM-DD
   transaction_type: 'gadai' | 'angsuran';
   priority: 'tinggi' | 'sedang' | 'rendah' | 'none';

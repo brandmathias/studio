@@ -73,6 +73,7 @@ const MOCK_CUSTOMERS: Customer[] = [
     id: 'PGD-007',
     name: 'Brando Mathias Zusriadi',
     phone_number: '082188769679',
+    email: 'brandomathiasz13@gmail.com',
     due_date: format(addDays(new Date(), 2), 'yyyy-MM-dd'),
     transaction_type: 'gadai',
     priority: 'none',
@@ -84,6 +85,7 @@ const MOCK_CUSTOMERS: Customer[] = [
     id: 'PGD-008',
     name: 'Brenda Febrina Zusriadi',
     phone_number: '085242041829',
+    email: 'brenda.febrina@example.com',
     due_date: format(addDays(new Date(), 5), 'yyyy-MM-dd'),
     transaction_type: 'angsuran',
     priority: 'none',
@@ -95,6 +97,7 @@ const MOCK_CUSTOMERS: Customer[] = [
     id: 'PGD-009',
     name: 'Nathanael Michael Tuwaidan',
     phone_number: '089681183705',
+    email: 'nathanael.michael@example.com',
     due_date: format(addDays(new Date(), 3), 'yyyy-MM-dd'),
     transaction_type: 'gadai',
     priority: 'none',
@@ -220,10 +223,13 @@ export default function DashboardPage() {
     const formattedDate = format(eventDate, 'yyyyMMdd');
 
     if (type === 'google') {
-      const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedDate}/${formattedDate}&details=${encodeURIComponent(eventDescription)}&location=Cabang Pegadaian Terdekat`;
+      let googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedDate}/${formattedDate}&details=${encodeURIComponent(eventDescription)}&location=Cabang Pegadaian Terdekat`;
+      if (customer.email) {
+        googleCalendarUrl += `&add=${encodeURIComponent(customer.email)}`;
+      }
       window.open(googleCalendarUrl, '_blank');
     } else if (type === 'ical') {
-      const icsContent = [
+      let icsContent = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
         'BEGIN:VEVENT',
@@ -232,11 +238,15 @@ export default function DashboardPage() {
         `DTSTART;VALUE=DATE:${formattedDate}`,
         `SUMMARY:${eventTitle}`,
         `DESCRIPTION:${eventDescription}`,
-        'END:VEVENT',
-        'END:VCALENDAR'
-      ].join('\n');
+      ];
+
+      if (customer.email) {
+        icsContent.push(`ATTENDEE;CN="${customer.name}";RSVP=TRUE:mailto:${customer.email}`);
+      }
+
+      icsContent.push('END:VEVENT', 'END:VCALENDAR');
       
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const blob = new Blob([icsContent.join('\n')], { type: 'text/calendar;charset=utf-8' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `pegadaian_reminder_${customer.id}.ics`;
@@ -510,6 +520,7 @@ export default function DashboardPage() {
                                 <TableCell>
                                 <div className="font-medium">{customer.name}</div>
                                 <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
+                                <div className="text-sm text-muted-foreground">{customer.email}</div>
                                 </TableCell>
                                  <TableCell>
                                     <Badge variant={segmentVariantMap[customer.segment] || 'outline'} className="capitalize">
