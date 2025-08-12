@@ -55,6 +55,7 @@ import {
   Users,
   BellRing,
   MessageSquare,
+  CalendarPlus,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -210,6 +211,43 @@ export default function DashboardPage() {
     
     window.open(whatsappUrl, '_blank');
     setNotificationsSent(prev => prev + 1);
+  };
+  
+  const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
+    const eventTitle = `Jatuh Tempo Pegadaian: ${customer.name}`;
+    const eventDescription = `Yth. ${customer.name}, transaksi Anda di Pegadaian dgn No. Ref ${customer.id} akan jatuh tempo. Mohon segera lakukan pembayaran untuk menghindari denda.`;
+    const eventDate = new Date(customer.due_date);
+    const formattedDate = format(eventDate, 'yyyyMMdd');
+
+    if (type === 'google') {
+      const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedDate}/${formattedDate}&details=${encodeURIComponent(eventDescription)}&location=Cabang Pegadaian Terdekat`;
+      window.open(googleCalendarUrl, '_blank');
+    } else if (type === 'ical') {
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'BEGIN:VEVENT',
+        `UID:${customer.id}@pegadaian.co.id`,
+        `DTSTAMP:${format(new Date(), "yyyyMMdd'T'HHmmss'Z'")}`,
+        `DTSTART;VALUE=DATE:${formattedDate}`,
+        `SUMMARY:${eventTitle}`,
+        `DESCRIPTION:${eventDescription}`,
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\n');
+      
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `pegadaian_reminder_${customer.id}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+     toast({
+      title: 'Calendar Event Created',
+      description: `Event for ${customer.name} has been prepared.`,
+    });
   };
 
   const handleNotifySelected = () => {
@@ -490,11 +528,29 @@ export default function DashboardPage() {
                                     {customer.priority === 'none' ? 'N/A' : customer.priority}
                                 </Badge>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="space-x-2">
                                 <Button size="sm" onClick={() => handleSendNotification(customer)}>
                                     <Bell className="mr-2 h-4 w-4" />
                                     Notify
                                 </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button size="sm" variant="outline">
+                                            <CalendarPlus className="mr-2 h-4 w-4" />
+                                            Calendar
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuLabel>Add to Calendar</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleAddToCalendar(customer, 'google')}>
+                                            Google Calendar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddToCalendar(customer, 'ical')}>
+                                            iCal / Outlook
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                             ))
