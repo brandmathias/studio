@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Papa from 'papaparse';
 import {
   Table,
   TableBody,
@@ -15,75 +16,74 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send } from 'lucide-react';
 import type { BroadcastCustomer } from '@/types';
-
-// Mock data based on the provided image, simulating a CSV import
-const MOCK_BROADCAST_CUSTOMERS: BroadcastCustomer[] = [
-  {
-    sbg_number: '1179325010007783',
-    rubrik: 'B2-KT',
-    name: 'FREDERIKA FILLY TOAD',
-    phone_number: '081256250780',
-    credit_date: '2025-03-19',
-    due_date: '2025-07-16',
-    loan_value: 1220000,
-  },
-  {
-    sbg_number: '1179325010007791',
-    rubrik: 'B2-KT',
-    name: 'DIANE CATHARINA WOWOR',
-    phone_number: '085299754006',
-    credit_date: '2025-03-19',
-    due_date: '2025-07-16',
-    loan_value: 1130000,
-  },
-  {
-    sbg_number: '1179325010007841',
-    rubrik: 'B2-KT',
-    name: 'ARDALISA ARSAD',
-    phone_number: '082346520130',
-    credit_date: '2025-03-19',
-    due_date: '2025-07-16',
-    loan_value: 1150000,
-  },
-  {
-    sbg_number: '1179324010011028',
-    rubrik: 'B3-KT',
-    name: 'LILIANA MARIA PUNGUS',
-    phone_number: '085255821040',
-    credit_date: '2025-03-19',
-    due_date: '2025-07-16',
-    loan_value: 2580000,
-  },
-  {
-    sbg_number: '1179325010007866',
-    rubrik: 'C1-KT',
-    name: 'SAMUEL MARTIN CHARLES TANOS',
-    phone_number: '081356084021',
-    credit_date: '2025-03-19',
-    due_date: '2025-07-16',
-    loan_value: 8510000,
-  },
-];
+import { Input } from '@/components/ui/input';
 
 const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-    });
+    // Check if the date string is in YYYY-MM-DD format, if so convert it.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+    // Assume it's already in a readable format if not YYYY-MM-DD
+    return dateString;
 };
 
 export default function ExperimentsPage() {
   const { toast } = useToast();
   const [importedData, setImportedData] = React.useState<BroadcastCustomer[]>([]);
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleImport = () => {
-    setImportedData(MOCK_BROADCAST_CUSTOMERS);
-    setSelectedCustomers(new Set());
-    toast({
-      title: 'Data Imported',
-      description: `${MOCK_BROADCAST_CUSTOMERS.length} records have been loaded.`,
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    Papa.parse<any>(file, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.toLowerCase().replace(/\s+/g, '_'),
+      complete: (results) => {
+        if (results.errors.length) {
+            toast({
+                title: 'Error Parsing CSV',
+                description: 'Please check the file format and content.',
+                variant: 'destructive',
+            });
+            console.error("CSV Parsing Errors:", results.errors);
+            return;
+        }
+        
+        // Map to BroadcastCustomer, ensuring correct types and handling potential missing fields
+        const parsedData: BroadcastCustomer[] = results.data.map(row => ({
+            sbg_number: row.no_sbg || '',
+            rubrik: row.rubrik || '',
+            name: row.nasabah || '',
+            phone_number: row.telphp || '',
+            credit_date: row.tgl_kredit || '',
+            due_date: row.tgl_jatuh_tempo || '',
+            loan_value: parseFloat(row.uang_pinjaman) || 0,
+        })).filter(customer => customer.sbg_number); // Filter out any rows without an SBG number
+
+        setImportedData(parsedData);
+        setSelectedCustomers(new Set()); // Reset selection
+        toast({
+          title: 'Data Imported Successfully',
+          description: `${parsedData.length} records have been loaded.`,
+        });
+      },
+      error: (error) => {
+        toast({
+            title: 'Error Reading File',
+            description: error.message,
+            variant: 'destructive',
+        });
+        console.error("File Reading Error:", error);
+      }
     });
   };
 
@@ -110,6 +110,7 @@ export default function ExperimentsPage() {
     const dueDate = new Date(customer.due_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
     
     // NOTE: This logic assumes all imported data is for RANOTANA for now.
+    // A more robust solution would check the sbg_number prefix.
     const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
 
     const message = `${headerLine}
@@ -127,7 +128,7 @@ Terima Kasih`;
     
     const formattedPhoneNumber = customer.phone_number.startsWith('0') 
       ? `62${customer.phone_number.substring(1)}` 
-      : customer.phone_number;
+      : customer.phone_number.replace(/[^0-9]/g, '');
 
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
@@ -154,11 +155,7 @@ Terima Kasih`;
     customersToNotify.forEach((customer) => {
       handleSendNotification(customer);
     });
-
-    // Optionally, clear selection after sending
-    // setSelectedCustomers(new Set());
   };
-
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -174,10 +171,17 @@ Terima Kasih`;
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-            <Button onClick={handleImport}>
+            <Button onClick={() => fileInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
-              Import CSV (Simulated)
+              Import CSV
             </Button>
+            <Input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept=".csv"
+            />
             <div className="flex-grow"></div>
             <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0}>
               <Send className="mr-2 h-4 w-4" />
