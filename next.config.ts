@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    // This is required to allow the Next.js dev server to accept requests from the Studio editor.
+    allowedDevOrigins: [
+      'https://*.cloudworkstations.dev',
+      'https://*.firebase.studio',
+    ],
+  },
 };
 
 export default nextConfig;
