@@ -106,14 +106,14 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
     segment: 'none'
   },
   {
-    id: 'PGD-009',
-    name: 'Nathanael Michael Tuwaidan',
-    phone_number: '089681183705',
-    email: 'nathanael.michael@example.com',
-    due_date: '2025-08-15',
+    id: '1179811122233344',
+    name: 'Savio Hendriko Palendeng',
+    phone_number: '081234567890',
+    email: 'savio.hendriko@example.com',
+    due_date: '2025-08-20',
     transaction_type: 'gadai',
     priority: 'none',
-    loan_value: 5000000,
+    loan_value: 12000000,
     has_been_late_before: true,
     segment: 'none'
   },
