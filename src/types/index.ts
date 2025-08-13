@@ -20,4 +20,9 @@ export interface BroadcastCustomer {
   credit_date: string;
   due_date: string;
   loan_value: number;
+  barang_jaminan: string;
+  taksiran: number;
+  sewa_modal: number;
+  alamat: string;
+  status: string;
 }

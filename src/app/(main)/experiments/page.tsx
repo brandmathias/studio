@@ -19,6 +19,7 @@ import type { BroadcastCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
 
 const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     // Check if the date string is in YYYY-MM-DD format, if so convert it.
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -27,9 +28,23 @@ const formatDate = (dateString: string) => {
             year: 'numeric'
         });
     }
+    // Handle DD/MM/YYYY format
+     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        const [day, month, year] = dateString.split('/');
+        return new Date(`${year}-${month}-${day}`).toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
     // Assume it's already in a readable format if not YYYY-MM-DD
     return dateString;
 };
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+}
+
 
 export default function ExperimentsPage() {
   const { toast } = useToast();
@@ -46,7 +61,7 @@ export default function ExperimentsPage() {
     Papa.parse<any>(file, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => header.toLowerCase().replace(/\s+/g, '_'),
+      transformHeader: (header) => header.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_{2,}/g, '_'),
       complete: (results) => {
         if (results.errors.length) {
             toast({
@@ -58,19 +73,23 @@ export default function ExperimentsPage() {
             return;
         }
         
-        // Map to BroadcastCustomer, ensuring correct types and handling potential missing fields
         const parsedData: BroadcastCustomer[] = results.data.map(row => ({
             sbg_number: row.no_sbg || '',
             rubrik: row.rubrik || '',
             name: row.nasabah || '',
             phone_number: row.telphp || '',
             credit_date: row.tgl_kredit || '',
-            due_date: row.tgl_jatuh_tempo || '',
-            loan_value: parseFloat(row.uang_pinjaman) || 0,
-        })).filter(customer => customer.sbg_number); // Filter out any rows without an SBG number
+            due_date: row.tgl_jth_tempo || row.tgl_jatuh_tempo || '',
+            loan_value: parseFloat(row.up__uang_pinjaman) || 0,
+            barang_jaminan: row.barang_jaminan || '',
+            taksiran: parseFloat(row.taksiran) || 0,
+            sewa_modal: parseFloat(row.sm__sewa_modal) || 0,
+            alamat: row.alamat || '',
+            status: row.status || '',
+        })).filter(customer => customer.sbg_number); 
 
         setImportedData(parsedData);
-        setSelectedCustomers(new Set()); // Reset selection
+        setSelectedCustomers(new Set()); 
         toast({
           title: 'Data Imported Successfully',
           description: `${parsedData.length} records have been loaded.`,
@@ -203,16 +222,20 @@ Terima Kasih`;
                   <TableHead>No. SBG</TableHead>
                   <TableHead>Nasabah</TableHead>
                   <TableHead>Rubrik</TableHead>
+                  <TableHead>Tgl. Kredit & Jth Tempo</TableHead>
+                  <TableHead>Barang Jaminan</TableHead>
+                  <TableHead>Taksiran</TableHead>
+                  <TableHead>UP (Uang Pinjaman)</TableHead>
+                  <TableHead>SM (Sewa Modal)</TableHead>
                   <TableHead>Telp/HP</TableHead>
-                  <TableHead>Tgl Kredit</TableHead>
-                  <TableHead>Tgl Jatuh Tempo</TableHead>
-                  <TableHead className="text-right">Uang Pinjaman</TableHead>
+                  <TableHead>Alamat</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {importedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-24 text-center">
+                      <TableCell colSpan={12} className="h-24 text-center">
                           No data imported. Click "Import CSV" to begin.
                       </TableCell>
                     </TableRow>
@@ -229,12 +252,17 @@ Terima Kasih`;
                       <TableCell className="font-mono">{customer.sbg_number}</TableCell>
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>{customer.rubrik}</TableCell>
-                      <TableCell>{customer.phone_number}</TableCell>
-                      <TableCell>{formatDate(customer.credit_date)}</TableCell>
-                      <TableCell>{formatDate(customer.due_date)}</TableCell>
-                      <TableCell className="text-right">
-                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(customer.loan_value)}
+                      <TableCell>
+                        <div>{formatDate(customer.credit_date)}</div>
+                        <div className='font-bold'>{formatDate(customer.due_date)}</div>
                       </TableCell>
+                      <TableCell>{customer.barang_jaminan}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.loan_value)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
+                      <TableCell>{customer.phone_number}</TableCell>
+                      <TableCell>{customer.alamat}</TableCell>
+                      <TableCell>{customer.status}</TableCell>
                     </TableRow>
                   ))
                 )}
