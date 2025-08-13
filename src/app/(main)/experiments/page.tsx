@@ -45,6 +45,20 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
+// Helper function to parse DD/MM/YYYY into a valid Date object
+const parseDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (!parts) {
+        // Try parsing directly if it's not in DD/MM/YYYY
+        const d = new Date(dateString);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    // parts[1] = DD, parts[2] = MM, parts[3] = YYYY
+    const d = new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1]));
+    return isNaN(d.getTime()) ? null : d;
+}
+
 
 export default function ExperimentsPage() {
   const { toast } = useToast();
@@ -126,7 +140,10 @@ export default function ExperimentsPage() {
   };
 
   const handleSendWhatsapp = (customer: BroadcastCustomer) => {
-    const dueDate = new Date(customer.due_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
+    const dueDateObj = parseDate(customer.due_date);
+    if (!dueDateObj) return; // Skip if date is invalid
+
+    const dueDate = dueDateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
     
     // NOTE: This logic assumes all imported data is for RANOTANA for now.
     // A more robust solution would check the sbg_number prefix.
@@ -155,8 +172,14 @@ Terima Kasih`;
   };
 
   const handleAddToCalendar = (customer: BroadcastCustomer) => {
+    const dueDateObj = parseDate(customer.due_date);
+    if (!dueDateObj) {
+        console.error("Invalid due date for calendar event:", customer.due_date);
+        return; // Skip if date is invalid
+    }
+
     const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
-    const dueDate = new Date(customer.due_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
+    const dueDateFormatted = dueDateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
     
     const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
 
@@ -164,7 +187,7 @@ Terima Kasih`;
 
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.sbg_number} Sudah JATUH TEMPO tanggal ${dueDate}.*
+*Gadaian ${customer.sbg_number} Sudah JATUH TEMPO tanggal ${dueDateFormatted}.*
 
 Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
 
@@ -174,8 +197,10 @@ Terima Kasih`;
     
     const eventDescription = encodeURIComponent(emailMessage);
     
-    const eventStartDate = new Date(customer.due_date).toISOString().split('T')[0].replace(/-/g, '');
-    const eventEndDate = new Date(new Date(customer.due_date).setDate(new Date(customer.due_date).getDate() + 1)).toISOString().split('T')[0].replace(/-/g, '');
+    const eventStartDate = dueDateObj.toISOString().split('T')[0].replace(/-/g, '');
+    const eventEndDateObj = new Date(dueDateObj);
+    eventEndDateObj.setDate(dueDateObj.getDate() + 1);
+    const eventEndDate = eventEndDateObj.toISOString().split('T')[0].replace(/-/g, '');
 
     const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}`;
     window.open(googleUrl, '_blank');
@@ -299,7 +324,7 @@ Terima Kasih`;
           </div>
             {selectedCustomers.size > 0 && (
                 <div className="text-xs text-muted-foreground mt-2">
-                Browser may ask for permission to open multiple tabs. Please allow it.
+                Browser may ask for permission to open multiple tabs for WhatsApp and Google Calendar. Please allow it.
                 </div>
             )}
         </CardContent>
