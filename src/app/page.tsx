@@ -67,10 +67,22 @@ const priorityIndonesianMap: Record<string, Customer['priority']> = {
   low: 'rendah',
 };
 
+const getUpcFromId = (id: string): Customer['upc'] => {
+  const prefix = id.substring(0, 5);
+  if (prefix === '11798') {
+    return 'Wanea';
+  }
+  if (prefix === '11793') {
+    return 'Ranotana';
+  }
+  return 'N/A';
+};
+
+
 // Enhanced Mock Data to represent different customer segments
-const MOCK_CUSTOMERS: Customer[] = [
+const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
   {
-    id: '1178724010023012',
+    id: '1179824010023012',
     name: 'Brando Mathias Zusriadi',
     phone_number: '082188769679',
     email: 'brandomathiasz13@gmail.com',
@@ -82,7 +94,7 @@ const MOCK_CUSTOMERS: Customer[] = [
     segment: 'none'
   },
   {
-    id: 'PGD-008',
+    id: '11793008',
     name: 'Brenda Febrina Zusriadi',
     phone_number: '085242041829',
     email: 'brenda.febrina@example.com',
@@ -106,6 +118,11 @@ const MOCK_CUSTOMERS: Customer[] = [
     segment: 'none'
   },
 ];
+
+const MOCK_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
+  ...c,
+  upc: getUpcFromId(c.id),
+}));
 
 
 export default function DashboardPage() {
@@ -502,6 +519,7 @@ Terima Kasih`;
                             />
                           </TableHead>
                           <TableHead>Customer</TableHead>
+                          <TableHead>UPC</TableHead>
                           <TableHead>Segment</TableHead>
                           <TableHead className="hidden md:table-cell">Transaction</TableHead>
                           <TableHead>Due Date</TableHead>
@@ -512,7 +530,7 @@ Terima Kasih`;
                     <TableBody>
                         {filteredCustomers.length === 0 ? (
                              <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
+                                <TableCell colSpan={8} className="h-24 text-center">
                                     No customers found.
                                 </TableCell>
                             </TableRow>
@@ -531,6 +549,7 @@ Terima Kasih`;
                                 <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
                                 <div className="text-sm text-muted-foreground">{customer.email}</div>
                                 </TableCell>
+                                <TableCell>{customer.upc}</TableCell>
                                  <TableCell>
                                     <Badge variant={segmentVariantMap[customer.segment] || 'outline'} className="capitalize">
                                         {customer.segment === 'none' ? 'N/A' : customer.segment}
