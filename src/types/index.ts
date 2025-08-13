@@ -9,5 +9,5 @@ export interface Customer {
   loan_value: number;
   has_been_late_before: boolean;
   segment: 'Platinum' | 'Reguler' | 'Berisiko' | 'none';
-  upc: 'Wanea' | 'Ranotana' | 'N/A';
+  upc: 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A';
 }

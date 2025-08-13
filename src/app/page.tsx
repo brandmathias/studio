@@ -70,10 +70,10 @@ const priorityIndonesianMap: Record<string, Customer['priority']> = {
 const getUpcFromId = (id: string): Customer['upc'] => {
   const prefix = id.substring(0, 5);
   if (prefix === '11798') {
-    return 'Wanea';
+    return 'Pegadaian Wanea';
   }
   if (prefix === '11793') {
-    return 'Ranotana';
+    return 'Pegadaian Ranotana';
   }
   return 'N/A';
 };
