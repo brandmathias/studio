@@ -82,7 +82,7 @@ const getUpcFromId = (id: string): Customer['upc'] => {
 // Enhanced Mock Data to represent different customer segments
 const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
   {
-    id: '1179824010023012',
+    id: '1179324010023012',
     name: 'Brando Mathias Zusriadi',
     phone_number: '082188769679',
     email: 'brandomathiasz13@gmail.com',
