@@ -94,7 +94,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
     segment: 'none'
   },
   {
-    id: '11793008',
+    id: '1179300812345678',
     name: 'Brenda Febrina Zusriadi',
     phone_number: '085242041829',
     email: 'brenda.febrina@example.com',
@@ -220,9 +220,20 @@ export default function DashboardPage() {
 
   const handleSendNotification = (customer: Customer) => {
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
-    const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
     
-    const message = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU
+    let headerLine = '';
+    if (customer.upc === 'Pegadaian Ranotana') {
+        headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+    } else if (customer.upc === 'Pegadaian Wanea') {
+        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
+        headerLine = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU`;
+    } else {
+        // Fallback for N/A or other UPCs
+        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
+        headerLine = `Nasabah PEGADAIAN ${upcName}`;
+    }
+
+    const message = `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
 *Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}*
