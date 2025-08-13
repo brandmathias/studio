@@ -108,7 +108,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
   {
     id: '1179811122233344',
     name: 'Savio Hendriko Palendeng',
-    phone_number: '085757160254',
+    phone_number: '0857-5716-0254',
     email: 'savio.hendriko@example.com',
     due_date: '2025-08-20',
     transaction_type: 'gadai',
@@ -259,16 +259,37 @@ Terima Kasih`;
   
   const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
     const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
-    const eventDescription = encodeURIComponent(`Transaksi No. Ref ${customer.id} akan jatuh tempo. Mohon segera lakukan pembayaran.`);
+    const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
     
-    // Google Calendar format: YYYYMMDDTHHMMSSZ/YYYYMMDDTHHMMSSZ
-    // We'll make it an all-day event
+    let headerLine = '';
+    if (customer.upc === 'Pegadaian Ranotana') {
+        headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+    } else if (customer.upc === 'Pegadaian Wanea') {
+        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
+        headerLine = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU`;
+    } else {
+        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
+        headerLine = `Nasabah PEGADAIAN ${upcName}`;
+    }
+
+    const emailMessage = `${headerLine}
+
+Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}
+
+Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}.
+
+Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
+
+Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL.
+
+Terima Kasih`;
+    
+    const eventDescription = encodeURIComponent(emailMessage);
+    
     const eventStartDate = format(new Date(customer.due_date), 'yyyyMMdd');
     const eventEndDate = format(addDays(new Date(customer.due_date), 1), 'yyyyMMdd');
 
     if (type === 'google') {
-      // Basic link, more params can be added.
-      // Adding the guest's email to 'add' parameter
       const guestEmail = customer.email ? `&add=${encodeURIComponent(customer.email)}` : '';
       const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}${guestEmail}`;
       window.open(googleUrl, '_blank');
