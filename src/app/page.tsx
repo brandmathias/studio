@@ -220,15 +220,19 @@ export default function DashboardPage() {
 
   const handleSendNotification = (customer: Customer) => {
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
-    const message = `Nasabah PEGADAIAN WANEA / TANJUNG BATU Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}
+    const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
+    
+    const message = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU
+*Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}
+*Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}*
 
 Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
 
 pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
 
 Terima Kasih`;
+
     const encodedMessage = encodeURIComponent(message);
     
     // Format number to remove leading '0' and add country code '62'
