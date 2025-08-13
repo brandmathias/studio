@@ -125,7 +125,7 @@ export default function ExperimentsPage() {
     }
   };
 
-  const handleSendNotification = (customer: BroadcastCustomer) => {
+  const handleSendWhatsapp = (customer: BroadcastCustomer) => {
     const dueDate = new Date(customer.due_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
     
     // NOTE: This logic assumes all imported data is for RANOTANA for now.
@@ -154,6 +154,33 @@ Terima Kasih`;
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleAddToCalendar = (customer: BroadcastCustomer) => {
+    const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
+    const dueDate = new Date(customer.due_date).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
+    
+    const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+
+    const emailMessage = `${headerLine}
+
+*Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
+
+*Gadaian ${customer.sbg_number} Sudah JATUH TEMPO tanggal ${dueDate}.*
+
+Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
+
+Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL.
+
+Terima Kasih`;
+    
+    const eventDescription = encodeURIComponent(emailMessage);
+    
+    const eventStartDate = new Date(customer.due_date).toISOString().split('T')[0].replace(/-/g, '');
+    const eventEndDate = new Date(new Date(customer.due_date).setDate(new Date(customer.due_date).getDate() + 1)).toISOString().split('T')[0].replace(/-/g, '');
+
+    const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}`;
+    window.open(googleUrl, '_blank');
+  };
+
   const handleNotifySelected = () => {
     if (selectedCustomers.size === 0) {
       toast({
@@ -165,14 +192,15 @@ Terima Kasih`;
     }
 
     toast({
-      title: 'Opening WhatsApp Tabs',
+      title: 'Opening WhatsApp & Calendar Tabs',
       description: `Preparing notifications for ${selectedCustomers.size} customer(s). Please allow pop-ups.`,
     });
 
     const customersToNotify = importedData.filter((c) => selectedCustomers.has(c.sbg_number));
     
     customersToNotify.forEach((customer) => {
-      handleSendNotification(customer);
+      handleSendWhatsapp(customer);
+      handleAddToCalendar(customer); // Also trigger calendar event creation
     });
   };
 
