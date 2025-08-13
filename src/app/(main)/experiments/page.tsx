@@ -202,7 +202,9 @@ Terima Kasih`;
                   </TableHead>
                   <TableHead>No. SBG</TableHead>
                   <TableHead>Nasabah</TableHead>
+                  <TableHead>Rubrik</TableHead>
                   <TableHead>Telp/HP</TableHead>
+                  <TableHead>Tgl Kredit</TableHead>
                   <TableHead>Tgl Jatuh Tempo</TableHead>
                   <TableHead className="text-right">Uang Pinjaman</TableHead>
                 </TableRow>
@@ -210,13 +212,13 @@ Terima Kasih`;
               <TableBody>
                 {importedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
+                      <TableCell colSpan={8} className="h-24 text-center">
                           No data imported. Click "Import CSV" to begin.
                       </TableCell>
                     </TableRow>
                 ) : (
-                  importedData.map((customer) => (
-                    <TableRow key={customer.sbg_number} data-state={selectedCustomers.has(customer.sbg_number) ? 'selected' : ''}>
+                  importedData.map((customer, index) => (
+                    <TableRow key={customer.sbg_number || index} data-state={selectedCustomers.has(customer.sbg_number) ? 'selected' : ''}>
                       <TableCell>
                         <Checkbox
                             checked={selectedCustomers.has(customer.sbg_number)}
@@ -226,7 +228,9 @@ Terima Kasih`;
                       </TableCell>
                       <TableCell className="font-mono">{customer.sbg_number}</TableCell>
                       <TableCell className="font-medium">{customer.name}</TableCell>
+                      <TableCell>{customer.rubrik}</TableCell>
                       <TableCell>{customer.phone_number}</TableCell>
+                      <TableCell>{formatDate(customer.credit_date)}</TableCell>
                       <TableCell>{formatDate(customer.due_date)}</TableCell>
                       <TableCell className="text-right">
                         {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(customer.loan_value)}
