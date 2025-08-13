@@ -108,7 +108,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
   {
     id: '1179811122233344',
     name: 'Savio Hendriko Palendeng',
-    phone_number: '081234567890',
+    phone_number: '085757160254',
     email: 'savio.hendriko@example.com',
     due_date: '2025-08-20',
     transaction_type: 'gadai',
