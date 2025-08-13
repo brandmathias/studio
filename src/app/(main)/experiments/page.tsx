@@ -138,6 +138,43 @@ export default function ExperimentsPage() {
       setSelectedCustomers(new Set());
     }
   };
+  
+  const handleNotifyAndCalendar = (customer: BroadcastCustomer) => {
+    const dueDateObj = parseDate(customer.due_date);
+    if (!dueDateObj) {
+      console.error("Invalid due date for customer:", customer.name);
+      return;
+    }
+
+    const dueDate = dueDateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
+    const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+    const message = `${headerLine}
+*Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
+
+*Gadaian ${customer.sbg_number} Sudah JATUH TEMPO tanggal ${dueDate}*
+
+Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
+
+Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
+
+Terima Kasih`;
+    const encodedMessage = encodeURIComponent(message);
+    const formattedPhoneNumber = customer.phone_number.startsWith('0') 
+      ? `62${customer.phone_number.substring(1)}` 
+      : customer.phone_number.replace(/[^0-9]/g, '');
+    const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+    
+    // Google Calendar Event
+    const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
+    const eventDescription = encodeURIComponent(message);
+    const eventStartDate = dueDateObj.toISOString().split('T')[0].replace(/-/g, '');
+    const eventEndDateObj = new Date(dueDateObj);
+    eventEndDateObj.setDate(dueDateObj.getDate() + 1);
+    const eventEndDate = eventEndDateObj.toISOString().split('T')[0].replace(/-/g, '');
+    const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}`;
+    window.open(googleUrl, '_blank');
+  };
 
   const handleNotifySelected = () => {
     if (selectedCustomers.size === 0) {
@@ -156,39 +193,10 @@ export default function ExperimentsPage() {
 
     const customersToNotify = importedData.filter((c) => selectedCustomers.has(c.sbg_number));
     
-    customersToNotify.forEach((customer) => {
-        // WhatsApp Notification
-        const dueDateObj = parseDate(customer.due_date);
-        if (!dueDateObj) return;
-
-        const dueDate = dueDateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
-        const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
-        const message = `${headerLine}
-*Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
-
-*Gadaian ${customer.sbg_number} Sudah JATUH TEMPO tanggal ${dueDate}*
-
-Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
-
-Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
-
-Terima Kasih`;
-        const encodedMessage = encodeURIComponent(message);
-        const formattedPhoneNumber = customer.phone_number.startsWith('0') 
-          ? `62${customer.phone_number.substring(1)}` 
-          : customer.phone_number.replace(/[^0-9]/g, '');
-        const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
-        window.open(whatsappUrl, '_blank');
-        
-        // Google Calendar Event
-        const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
-        const eventDescription = encodeURIComponent(message);
-        const eventStartDate = dueDateObj.toISOString().split('T')[0].replace(/-/g, '');
-        const eventEndDateObj = new Date(dueDateObj);
-        eventEndDateObj.setDate(dueDateObj.getDate() + 1);
-        const eventEndDate = eventEndDateObj.toISOString().split('T')[0].replace(/-/g, '');
-        const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}`;
-        window.open(googleUrl, '_blank');
+    customersToNotify.forEach((customer, index) => {
+      setTimeout(() => {
+        handleNotifyAndCalendar(customer);
+      }, index * 300); // Add a 300ms delay between each customer
     });
   };
 
