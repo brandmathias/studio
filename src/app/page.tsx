@@ -70,11 +70,11 @@ const priorityIndonesianMap: Record<string, Customer['priority']> = {
 // Enhanced Mock Data to represent different customer segments
 const MOCK_CUSTOMERS: Customer[] = [
   {
-    id: 'PGD-007',
+    id: '1178724010023012',
     name: 'Brando Mathias Zusriadi',
     phone_number: '082188769679',
     email: 'brandomathiasz13@gmail.com',
-    due_date: '2025-08-14',
+    due_date: '2025-08-12',
     transaction_type: 'gadai',
     priority: 'none',
     loan_value: 8000000,
@@ -202,7 +202,16 @@ export default function DashboardPage() {
   };
 
   const handleSendNotification = (customer: Customer) => {
-    const message = `Yth. ${customer.name}, transaksi Anda di Pegadaian dgn No. Ref ${customer.id} jatuh tempo pd ${format(new Date(customer.due_date), 'dd MMMM yyyy')}. Mohon segera lakukan pembayaran.`;
+    const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
+    const message = `Nasabah PEGADAIAN WANEA / TANJUNG BATU Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}
+
+Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}
+
+Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
+
+pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
+
+Terima Kasih`;
     const encodedMessage = encodeURIComponent(message);
     
     // Format number to remove leading '0' and add country code '62'
