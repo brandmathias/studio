@@ -11,3 +11,13 @@ export interface Customer {
   segment: 'Platinum' | 'Reguler' | 'Berisiko' | 'none';
   upc: 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A';
 }
+
+export interface BroadcastCustomer {
+  sbg_number: string;
+  rubrik: string;
+  name: string;
+  phone_number: string;
+  credit_date: string;
+  due_date: string;
+  loan_value: number;
+}
