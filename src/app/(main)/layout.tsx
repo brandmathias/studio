@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -59,6 +59,16 @@ export default function MainLayout({
               >
                 <LayoutDashboard />
                 <span>Dashboard</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => router.push('/pdf-broadcast')}
+                isActive={pathname.startsWith('/pdf-broadcast')}
+                tooltip="PDF Broadcast"
+              >
+                <FileUp />
+                <span>PDF Broadcast</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>

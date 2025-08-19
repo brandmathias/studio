@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Papa from 'papaparse';
 import {
   Table,
   TableBody,
@@ -71,52 +70,12 @@ export default function ExperimentsPage() {
     if (!file) {
       return;
     }
-
-    Papa.parse<any>(file, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => header.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_{2,}/g, '_'),
-      complete: (results) => {
-        if (results.errors.length) {
-            toast({
-                title: 'Error Parsing CSV',
-                description: 'Please check the file format and content.',
-                variant: 'destructive',
-            });
-            console.error("CSV Parsing Errors:", results.errors);
-            return;
-        }
-        
-        const parsedData: BroadcastCustomer[] = results.data.map(row => ({
-            sbg_number: row.no_sbg || '',
-            rubrik: row.rubrik || '',
-            name: row.nasabah || '',
-            phone_number: row.telphp || '',
-            credit_date: row.tgl_kredit || '',
-            due_date: row.tgl_jth_tempo || row.tgl_jatuh_tempo || '',
-            loan_value: parseFloat(row.up__uang_pinjaman) || 0,
-            barang_jaminan: row.barang_jaminan || '',
-            taksiran: parseFloat(row.taksiran) || 0,
-            sewa_modal: parseFloat(row.sm__sewa_modal) || 0,
-            alamat: row.alamat || '',
-            status: row.status || '',
-        })).filter(customer => customer.sbg_number); 
-
-        setImportedData(parsedData);
-        setSelectedCustomers(new Set()); 
-        toast({
-          title: 'Data Imported Successfully',
-          description: `${parsedData.length} records have been loaded.`,
-        });
-      },
-      error: (error) => {
-        toast({
-            title: 'Error Reading File',
-            description: error.message,
-            variant: 'destructive',
-        });
-        console.error("File Reading Error:", error);
-      }
+    // Note: PapaParse is not installed, so this logic will not work.
+    // This component is now effectively a placeholder.
+    toast({
+        title: 'Functionality Moved',
+        description: 'Please use the PDF Broadcast page to import and notify customers.',
+        variant: 'destructive',
     });
   };
 
@@ -203,20 +162,20 @@ Terima Kasih`;
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="flex items-center">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">Broadcast Experiment</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-headline">CSV Broadcast Experiment</h1>
       </div>
       <Card>
         <CardHeader>
           <CardTitle>CSV Broadcast Panel</CardTitle>
           <CardDescription>
-            Import customer data from a CSV file to send bulk notifications.
+            This panel is now deprecated. Please use the "PDF Broadcast" page for imports.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
             <Button onClick={() => fileInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
-              Import CSV
+              Import CSV (Disabled)
             </Button>
             <Input
                 type="file"
@@ -260,7 +219,7 @@ Terima Kasih`;
                 {importedData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={12} className="h-24 text-center">
-                          No data imported. Click "Import CSV" to begin.
+                          Functionality has moved to the PDF Broadcast page.
                       </TableCell>
                     </TableRow>
                 ) : (
