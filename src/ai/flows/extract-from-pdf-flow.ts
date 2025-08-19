@@ -60,7 +60,9 @@ const prompt = ai.definePrompt({
     prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian.
 Your task is to meticulously extract customer and loan information from the provided PDF document. The document is a report of customers whose pawned items are due.
 
-**You must process all pages of the document from beginning to end.** Analyze the document provided via the data URI and identify each customer record across all pages. For each record, extract the following fields and return them as a structured JSON object matching the schema:
+**CRITICAL INSTRUCTION: You MUST process ALL PAGES of the document from the beginning to the very end.** The report can span multiple pages, and failing to process every single page will result in incomplete data.
+
+Analyze the document provided via the data URI and identify each customer record across all pages. For each record, extract the following fields and return them as a structured JSON object matching the schema:
 - sbg_number
 - rubrik
 - name
