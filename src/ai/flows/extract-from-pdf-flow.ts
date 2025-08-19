@@ -57,12 +57,14 @@ const prompt = ai.definePrompt({
     name: 'extractCustomersFromPdfPrompt',
     input: { schema: ExtractCustomersInputSchema },
     output: { schema: ExtractCustomersOutputSchema },
-    prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian.
-Your task is to meticulously extract customer and loan information from the provided PDF document. The document is a report of customers whose pawned items are due.
+    prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian. Your task is to extract all customer records from the provided PDF.
 
-**CRITICAL INSTRUCTION: You MUST process ALL PAGES of the document from the beginning to the very end.** The report can span multiple pages, and failing to process every single page will result in incomplete data.
+Follow this two-step process:
+1.  **Analyze the ENTIRE document**: First, go through all pages of the PDF from beginning to end and identify the total number of unique customer records in the document.
+2.  **Extract ALL records**: Once you have identified the total count, proceed to extract the details for every single record you found. Do not stop until you have extracted all of them.
 
-Analyze the document provided via the data URI and identify each customer record across all pages. For each record, extract the following fields and return them as a structured JSON object matching the schema:
+**Extraction Fields:**
+For each record, extract these fields and return them as a structured JSON object:
 - sbg_number
 - rubrik
 - name
@@ -76,9 +78,11 @@ Analyze the document provided via the data URI and identify each customer record
 - alamat
 - status
 
-Make sure to format all dates as DD/MM/YYYY. Convert all monetary values to numbers, removing any currency symbols or formatting. Combine all customers found across all pages into a single list.
+**Formatting Rules:**
+- Dates must be in DD/MM/YYYY format.
+- Monetary values must be numbers.
 
-If the document is unreadable, contains no customer data, or is not a valid pawnshop report, return an empty array for the 'customers' field. Do not guess or hallucinate data.
+If the document is unreadable or contains no valid data, return an empty 'customers' array.
 
 Document for processing:
 {{media url=pdfDataUri}}
