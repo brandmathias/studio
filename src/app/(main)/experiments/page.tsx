@@ -13,9 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Send } from 'lucide-react';
+import { Upload, Send, Loader2 } from 'lucide-react';
 import type { BroadcastCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
+import Papa from 'papaparse';
+
 
 const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -41,6 +43,7 @@ const formatDate = (dateString: string) => {
 };
 
 const formatCurrency = (value: number) => {
+    if (isNaN(value)) return 'N/A';
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
@@ -64,19 +67,64 @@ export default function ExperimentsPage() {
   const [importedData, setImportedData] = React.useState<BroadcastCustomer[]>([]);
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       return;
     }
-    // Note: PapaParse is not installed, so this logic will not work.
-    // This component is now effectively a placeholder.
+
+    setIsLoading(true);
+    setImportedData([]);
+    setSelectedCustomers(new Set());
     toast({
-        title: 'Functionality Moved',
-        description: 'Please use the PDF Broadcast page to import and notify customers.',
-        variant: 'destructive',
+        title: 'Processing CSV...',
+        description: 'Reading data from the file.',
     });
+
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+            const parsedData = results.data as any[];
+
+            const broadcastCustomers: BroadcastCustomer[] = parsedData.map(row => ({
+                sbg_number: row.sbg_number || '',
+                rubrik: row.rubrik || '',
+                name: row.name || '',
+                phone_number: row.phone_number || '',
+                credit_date: row.credit_date || '',
+                due_date: row.due_date || '',
+                loan_value: parseFloat(row.loan_value) || 0,
+                barang_jaminan: row.barang_jaminan || '',
+                taksiran: parseFloat(row.taksiran) || 0,
+                sewa_modal: parseFloat(row.sewa_modal) || 0,
+                alamat: row.alamat || '',
+                status: row.status || '',
+            })).filter(c => c.sbg_number && c.name); // Basic validation
+
+            setImportedData(broadcastCustomers);
+            setIsLoading(false);
+            toast({
+                title: 'Import Complete',
+                description: `${broadcastCustomers.length} records have been loaded.`,
+            });
+        },
+        error: (error: any) => {
+            setIsLoading(false);
+            toast({
+                title: 'Error Parsing CSV',
+                description: error.message,
+                variant: 'destructive',
+            });
+            console.error("CSV parsing error:", error);
+        }
+    });
+
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
   };
 
   const handleSelectCustomer = (sbgNumber: string, checked: boolean) => {
@@ -157,6 +205,8 @@ Terima Kasih`;
         handleNotifyAndCalendar(customer);
       }, index * 300); // Add a 300ms delay between each customer
     });
+
+    setSelectedCustomers(new Set());
   };
 
   return (
@@ -168,14 +218,14 @@ Terima Kasih`;
         <CardHeader>
           <CardTitle>CSV Broadcast Panel</CardTitle>
           <CardDescription>
-            This panel is now deprecated. Please use the "PDF Broadcast" page for imports.
+            Import customer data from a CSV file to send bulk notifications.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-            <Button onClick={() => fileInputRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import CSV (Disabled)
+            <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              {isLoading ? 'Processing...' : 'Import CSV'}
             </Button>
             <Input
                 type="file"
@@ -185,7 +235,7 @@ Terima Kasih`;
                 accept=".csv"
             />
             <div className="flex-grow"></div>
-            <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0}>
+            <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0 || isLoading}>
               <Send className="mr-2 h-4 w-4" />
               Notify Selected ({selectedCustomers.size})
             </Button>
@@ -216,10 +266,17 @@ Terima Kasih`;
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {importedData.length === 0 ? (
+                {isLoading ? (
+                    <TableRow>
+                        <TableCell colSpan={12} className="h-24 text-center">
+                            <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                            <p className="mt-2 text-muted-foreground">Processing CSV file...</p>
+                        </TableCell>
+                    </TableRow>
+                ) : importedData.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={12} className="h-24 text-center">
-                          Functionality has moved to the PDF Broadcast page.
+                          No data imported. Click "Import CSV" to begin.
                       </TableCell>
                     </TableRow>
                 ) : (
