@@ -84,24 +84,25 @@ export default function ExperimentsPage() {
     });
 
     Papa.parse(file, {
-        header: true,
+        header: false, // We will map by position, not by header name
         skipEmptyLines: true,
         complete: (results) => {
-            const parsedData = results.data as any[];
+            // Data is now an array of arrays. We skip the first row (header).
+            const dataRows = (results.data as string[][]).slice(1);
 
-            const broadcastCustomers: BroadcastCustomer[] = parsedData.map(row => ({
-                sbg_number: row.sbg_number || '',
-                rubrik: row.rubrik || '',
-                name: row.name || '',
-                phone_number: row.phone_number || '',
-                credit_date: row.credit_date || '',
-                due_date: row.due_date || '',
-                loan_value: parseFloat(row.loan_value) || 0,
-                barang_jaminan: row.barang_jaminan || '',
-                taksiran: parseFloat(row.taksiran) || 0,
-                sewa_modal: parseFloat(row.sewa_modal) || 0,
-                alamat: row.alamat || '',
-                status: row.status || '',
+            const broadcastCustomers: BroadcastCustomer[] = dataRows.map(row => ({
+                sbg_number: row[0] || '',
+                rubrik: row[1] || '',
+                name: row[2] || '',
+                phone_number: row[3] || '',
+                credit_date: row[4] || '',
+                due_date: row[5] || '',
+                loan_value: parseFloat(row[6]) || 0,
+                barang_jaminan: row[7] || '',
+                taksiran: parseFloat(row[8]) || 0,
+                sewa_modal: parseFloat(row[9]) || 0,
+                alamat: row[10] || '',
+                status: row[11] || '',
             })).filter(c => c.sbg_number && c.name); // Basic validation
 
             setImportedData(broadcastCustomers);
@@ -218,7 +219,7 @@ Terima Kasih`;
         <CardHeader>
           <CardTitle>CSV Broadcast Panel</CardTitle>
           <CardDescription>
-            Import customer data from a CSV file to send bulk notifications.
+            Import customer data from a CSV file to send bulk notifications. The column order in the file must match the table order below.
           </CardDescription>
         </CardHeader>
         <CardContent>
