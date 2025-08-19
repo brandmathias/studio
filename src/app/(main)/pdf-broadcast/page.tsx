@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Send, Loader2, Mic } from 'lucide-react';
+import { Upload, Send, Loader2, Mic, Bell } from 'lucide-react';
 import type { BroadcastCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
 import { parsePdf } from './actions';
@@ -335,7 +335,7 @@ Terima Kasih`;
                       <TableCell>
                         <div className="flex items-center gap-2">
                            <Button size="sm" onClick={() => handleSendNotification(customer)} variant="outline">
-                                <Send className="h-4 w-4" />
+                                <Bell className="h-4 w-4" />
                             </Button>
                             <Button size="sm" onClick={() => handleGenerateVoicenote(customer)} disabled={isGeneratingVoicenote}>
                                 {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
