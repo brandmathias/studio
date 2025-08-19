@@ -40,6 +40,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
+import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
+import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import Chatbot from '@/components/Chatbot';
 import {
@@ -56,6 +58,7 @@ import {
   BellRing,
   MessageSquare,
   CalendarPlus,
+  Mic,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -135,6 +138,13 @@ export default function DashboardPage() {
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
   const [notificationsSent, setNotificationsSent] = React.useState(0);
   const [isChatbotOpen, setIsChatbotOpen] = React.useState(false);
+
+  const [isGeneratingVoicenote, setIsGeneratingVoicenote] = React.useState(false);
+  const [activeVoicenote, setActiveVoicenote] = React.useState<{
+    audioDataUri: string;
+    whatsappUrl: string;
+    customerName: string;
+  } | null>(null);
 
   React.useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -218,7 +228,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSendNotification = (customer: Customer) => {
+  const getNotificationMessage = (customer: Customer): string => {
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
     
     let headerLine = '';
@@ -228,12 +238,11 @@ export default function DashboardPage() {
         const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
         headerLine = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU`;
     } else {
-        // Fallback for N/A or other UPCs
         const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
         headerLine = `Nasabah PEGADAIAN ${upcName}`;
     }
 
-    const message = `${headerLine}
+    return `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
 *Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}*
@@ -243,10 +252,12 @@ Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat g
 Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
 
 Terima Kasih`;
-
+  };
+  
+  const handleSendNotification = (customer: Customer) => {
+    const message = getNotificationMessage(customer);
     const encodedMessage = encodeURIComponent(message);
     
-    // Format number to remove leading '0' and add country code '62'
     const formattedPhoneNumber = customer.phone_number.startsWith('0') 
       ? `62${customer.phone_number.substring(1)}` 
       : customer.phone_number;
@@ -257,6 +268,39 @@ Terima Kasih`;
     setNotificationsSent(prev => prev + 1);
   };
   
+  const handleGenerateVoicenote = async (customer: Customer) => {
+    setIsGeneratingVoicenote(true);
+    toast({
+        title: 'Membuat Pesan Suara...',
+        description: `AI sedang membuat pesan suara untuk ${customer.name}.`,
+    });
+    try {
+        const message = getNotificationMessage(customer);
+        const { audioDataUri } = await generateCustomerVoicenote({ text: message });
+
+        const formattedPhoneNumber = customer.phone_number.startsWith('0') 
+            ? `62${customer.phone_number.substring(1)}` 
+            : customer.phone_number;
+        const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodeURIComponent(message)}`;
+
+        setActiveVoicenote({
+            audioDataUri,
+            whatsappUrl,
+            customerName: customer.name,
+        });
+
+    } catch (error) {
+        console.error('Voicenote generation failed:', error);
+        toast({
+            title: 'Gagal Membuat Pesan Suara',
+            description: 'Terjadi kesalahan saat membuat pesan suara. Silakan coba lagi.',
+            variant: 'destructive',
+        });
+    } finally {
+        setIsGeneratingVoicenote(false);
+    }
+};
+
   const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
     const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
@@ -374,6 +418,20 @@ Terima Kasih`;
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
+       {activeVoicenote && (
+          <VoicenotePreviewDialog
+            isOpen={!!activeVoicenote}
+            onClose={() => setActiveVoicenote(null)}
+            audioDataUri={activeVoicenote.audioDataUri}
+            whatsappUrl={activeVoicenote.whatsappUrl}
+            customerName={activeVoicenote.customerName}
+            onConfirm={() => {
+                window.open(activeVoicenote.whatsappUrl, '_blank');
+                setNotificationsSent(prev => prev + 1);
+                setActiveVoicenote(null);
+            }}
+          />
+        )}
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-10">
         <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
           <a
@@ -604,15 +662,17 @@ Terima Kasih`;
                                 </Badge>
                                 </TableCell>
                                 <TableCell className="space-x-2">
-                                  <Button size="sm" onClick={() => handleSendNotification(customer)}>
-                                      <Bell className="mr-2 h-4 w-4" />
-                                      Notify
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <Button size="sm" onClick={() => handleSendNotification(customer)} variant="outline">
+                                        <Bell className="h-4 w-4" />
+                                    </Button>
+                                    <Button size="sm" onClick={() => handleGenerateVoicenote(customer)} disabled={isGeneratingVoicenote}>
+                                        {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
+                                    </Button>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button size="sm" variant="outline">
-                                                <CalendarPlus className="mr-2 h-4 w-4" />
-                                                Calendar
+                                                <CalendarPlus className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
@@ -624,6 +684,7 @@ Terima Kasih`;
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
+                                  </div>
                                 </TableCell>
                             </TableRow>
                             ))
