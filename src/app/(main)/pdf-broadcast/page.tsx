@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Send, Loader2, Mic, Bell } from 'lucide-react';
+import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
 import type { BroadcastCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
 import { parsePdf } from './actions';
@@ -156,13 +156,30 @@ Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi
 Terima Kasih`;
   };
 
+  const handleCopyMessage = (customer: BroadcastCustomer) => {
+    const message = getNotificationMessage(customer);
+    navigator.clipboard.writeText(message).then(() => {
+      toast({
+        title: 'Pesan Disalin',
+        description: `Pesan untuk ${customer.name} telah disalin ke clipboard.`,
+      });
+    }).catch(err => {
+      console.error('Failed to copy message: ', err);
+      toast({
+        title: 'Gagal Menyalin',
+        description: 'Tidak dapat menyalin pesan. Silakan coba lagi.',
+        variant: 'destructive',
+      });
+    });
+  };
+
   const handleSendNotification = (customer: BroadcastCustomer) => {
     const message = getNotificationMessage(customer);
     const encodedMessage = encodeURIComponent(message);
     
     const formattedPhoneNumber = customer.phone_number.startsWith('0') 
       ? `62${customer.phone_number.substring(1)}` 
-      : customer.phone_number;
+      : customer.phone_number.replace(/[^0-9]/g, '');
 
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
@@ -181,7 +198,7 @@ Terima Kasih`;
 
         const formattedPhoneNumber = customer.phone_number.startsWith('0') 
             ? `62${customer.phone_number.substring(1)}` 
-            : customer.phone_number;
+            : customer.phone_number.replace(/[^0-9]/g, '');
         const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodeURIComponent(message)}`;
 
         setActiveVoicenote({
@@ -339,6 +356,9 @@ Terima Kasih`;
                       <TableCell>{customer.status}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
+                           <Button size="sm" onClick={() => handleCopyMessage(customer)} variant="outline">
+                                <ClipboardCopy className="h-4 w-4" />
+                           </Button>
                            <Button size="sm" onClick={() => handleSendNotification(customer)} variant="outline">
                                 <Bell className="h-4 w-4" />
                             </Button>

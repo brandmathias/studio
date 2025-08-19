@@ -59,6 +59,7 @@ import {
   MessageSquare,
   CalendarPlus,
   Mic,
+  ClipboardCopy,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -253,6 +254,23 @@ Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi
 
 Terima Kasih`;
   };
+
+  const handleCopyMessage = (customer: Customer) => {
+    const message = getNotificationMessage(customer);
+    navigator.clipboard.writeText(message).then(() => {
+      toast({
+        title: 'Pesan Disalin',
+        description: `Pesan untuk ${customer.name} telah disalin ke clipboard.`,
+      });
+    }).catch(err => {
+      console.error('Failed to copy message: ', err);
+      toast({
+        title: 'Gagal Menyalin',
+        description: 'Tidak dapat menyalin pesan. Silakan coba lagi.',
+        variant: 'destructive',
+      });
+    });
+  };
   
   const handleSendNotification = (customer: Customer) => {
     const message = getNotificationMessage(customer);
@@ -260,7 +278,7 @@ Terima Kasih`;
     
     const formattedPhoneNumber = customer.phone_number.startsWith('0') 
       ? `62${customer.phone_number.substring(1)}` 
-      : customer.phone_number;
+      : customer.phone_number.replace(/[^0-9]/g, '');
 
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
@@ -663,6 +681,9 @@ Terima Kasih`;
                                 </TableCell>
                                 <TableCell className="space-x-2">
                                   <div className="flex items-center gap-2">
+                                    <Button size="sm" onClick={() => handleCopyMessage(customer)} variant="outline">
+                                        <ClipboardCopy className="h-4 w-4" />
+                                    </Button>
                                     <Button size="sm" onClick={() => handleSendNotification(customer)} variant="outline">
                                         <Bell className="h-4 w-4" />
                                     </Button>
