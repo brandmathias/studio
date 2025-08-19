@@ -60,17 +60,17 @@ const prompt = ai.definePrompt({
     prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian.
 Your task is to meticulously extract customer and loan information from the provided PDF document. The document is a report of customers whose pawned items are due.
 
-Analyze the document provided via the data URI and identify each customer record. For each record, extract the following fields:
-- no_sbg: The loan agreement number.
+Analyze the document provided via the data URI and identify each customer record. For each record, extract the following fields according to the schema:
+- sbg_number: The loan agreement number (labeled as "no_sbg" in the document).
 - rubrik: The loan category or rubric.
-- nasabah: The full name of the customer.
-- telphp: The customer's phone number.
-- tgl_kredit: The date the loan was issued (credit date).
-- tgl_jth_tempo: The due date.
-- up__uang_pinjaman: The principal loan amount.
+- name: The full name of the customer (labeled as "nasabah").
+- phone_number: The customer's phone number (labeled as "telphp").
+- credit_date: The date the loan was issued (labeled as "tgl_kredit").
+- due_date: The due date (labeled as "tgl_jth_tempo").
+- loan_value: The principal loan amount (labeled as "up__uang_pinjaman").
 - barang_jaminan: The description of the collateral.
 - taksiran: The appraised value of the collateral.
-- sm__sewa_modal: The service charge or interest (rent modal).
+- sewa_modal: The service charge or interest (labeled as "sm__sewa_modal").
 - alamat: The customer's address.
 - status: The current status of the loan.
 
