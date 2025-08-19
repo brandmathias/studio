@@ -93,7 +93,7 @@ const extractCustomersFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) {
-        return { customers: [] };
+      return { customers: [] };
     }
     return output;
   }
