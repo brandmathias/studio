@@ -35,8 +35,9 @@ export async function parsePdf(
     );
 
   } catch (err) {
-    console.error('Error in AI flow for PDF extraction:', err);
-    // Provide a more user-friendly error message
+    // This catch block now handles errors from the action itself,
+    // while the flow handles its own internal errors.
+    console.error('Error in parsePdf action:', err);
     throw new Error(
       'AI processing failed. The PDF might be malformed or in an unexpected format.'
     );

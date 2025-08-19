@@ -60,19 +60,19 @@ const prompt = ai.definePrompt({
     prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian.
 Your task is to meticulously extract customer and loan information from the provided PDF document. The document is a report of customers whose pawned items are due.
 
-Analyze the document provided via the data URI and identify each customer record. For each record, extract the following fields according to the schema:
-- sbg_number: The loan agreement number (labeled as "no_sbg" in the document).
-- rubrik: The loan category or rubric.
-- name: The full name of the customer (labeled as "nasabah").
-- phone_number: The customer's phone number (labeled as "telphp").
-- credit_date: The date the loan was issued (labeled as "tgl_kredit").
-- due_date: The due date (labeled as "tgl_jth_tempo").
-- loan_value: The principal loan amount (labeled as "up__uang_pinjaman").
-- barang_jaminan: The description of the collateral.
-- taksiran: The appraised value of the collateral.
-- sewa_modal: The service charge or interest (labeled as "sm__sewa_modal").
-- alamat: The customer's address.
-- status: The current status of the loan.
+Analyze the document provided via the data URI and identify each customer record. For each record, extract the following fields and return them as a structured JSON object matching the schema:
+- sbg_number
+- rubrik
+- name
+- phone_number
+- credit_date
+- due_date
+- loan_value
+- barang_jaminan
+- taksiran
+- sewa_modal
+- alamat
+- status
 
 Make sure to format all dates as DD/MM/YYYY. Convert all monetary values to numbers, removing any currency symbols or formatting.
 
@@ -91,10 +91,14 @@ const extractCustomersFlow = ai.defineFlow(
     outputSchema: ExtractCustomersOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
+    try {
+      const { output } = await prompt(input);
+      // Safely return the output or an empty array if output is null/undefined
+      return output || { customers: [] };
+    } catch (error) {
+      console.error("Error during AI prompt execution in extractCustomersFlow:", error);
+      // Return an empty array in case of any error during the AI call
       return { customers: [] };
     }
-    return output;
   }
 );
