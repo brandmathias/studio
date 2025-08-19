@@ -280,25 +280,31 @@ Terima Kasih`;
                       disabled={extractedData.length === 0}
                     />
                   </TableHead>
-                  <TableHead>Nasabah</TableHead>
                   <TableHead>No. SBG</TableHead>
-                  <TableHead>Jth Tempo</TableHead>
-                  <TableHead>Uang Pinjaman</TableHead>
+                  <TableHead>Nasabah</TableHead>
+                  <TableHead>Rubrik</TableHead>
+                  <TableHead>Tgl. Kredit & Jth Tempo</TableHead>
+                  <TableHead>Barang Jaminan</TableHead>
+                  <TableHead>Taksiran</TableHead>
+                  <TableHead>UP (Uang Pinjaman)</TableHead>
+                  <TableHead>SM (Sewa Modal)</TableHead>
                   <TableHead>Telp/HP</TableHead>
+                  <TableHead>Alamat</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                      <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">
+                        <TableCell colSpan={13} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">AI is extracting data from the PDF...</p>
                         </TableCell>
                     </TableRow>
                 ) : extractedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
+                      <TableCell colSpan={13} className="h-24 text-center">
                           No data extracted. Click "Import PDF" to begin.
                       </TableCell>
                     </TableRow>
@@ -312,14 +318,20 @@ Terima Kasih`;
                             aria-label={`Select ${customer.name}`}
                         />
                       </TableCell>
-                       <TableCell>
-                          <div className="font-medium">{customer.name}</div>
-                          <div className="text-sm text-muted-foreground">{customer.barang_jaminan}</div>
-                        </TableCell>
                       <TableCell className="font-mono">{customer.sbg_number}</TableCell>
-                      <TableCell className='font-bold'>{formatDate(customer.due_date)}</TableCell>
+                      <TableCell className="font-medium">{customer.name}</TableCell>
+                      <TableCell>{customer.rubrik}</TableCell>
+                      <TableCell>
+                        <div>{formatDate(customer.credit_date)}</div>
+                        <div className='font-bold'>{formatDate(customer.due_date)}</div>
+                      </TableCell>
+                      <TableCell>{customer.barang_jaminan}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.loan_value)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
                       <TableCell>{customer.phone_number}</TableCell>
+                      <TableCell>{customer.alamat}</TableCell>
+                      <TableCell>{customer.status}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                            <Button size="sm" onClick={() => handleSendNotification(customer)} variant="outline">
