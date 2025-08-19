@@ -159,10 +159,13 @@ Terima Kasih`;
   const handleSendNotification = (customer: BroadcastCustomer) => {
     const message = getNotificationMessage(customer);
     const encodedMessage = encodeURIComponent(message);
+    
     const formattedPhoneNumber = customer.phone_number.startsWith('0') 
       ? `62${customer.phone_number.substring(1)}` 
-      : customer.phone_number.replace(/[^0-9]/g, '');
+      : customer.phone_number;
+
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
+    
     window.open(whatsappUrl, '_blank');
   };
 
@@ -178,7 +181,7 @@ Terima Kasih`;
 
         const formattedPhoneNumber = customer.phone_number.startsWith('0') 
             ? `62${customer.phone_number.substring(1)}` 
-            : customer.phone_number.replace(/[^0-9]/g, '');
+            : customer.phone_number;
         const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodeURIComponent(message)}`;
 
         setActiveVoicenote({
