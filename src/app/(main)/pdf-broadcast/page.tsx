@@ -222,6 +222,8 @@ Terima Kasih`;
         handleSendNotification(customer);
       }, index * 200); 
     });
+    
+    setSelectedCustomers(new Set());
   };
 
   return (
