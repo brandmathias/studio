@@ -10,15 +10,15 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mic, Send } from 'lucide-react';
+import { Mic, Download, MessageSquare } from 'lucide-react';
 
 interface VoicenotePreviewDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void; // This will now be for opening WhatsApp
   audioDataUri: string;
   customerName: string;
-  whatsappUrl: string;
+  whatsappUrl: string; // The URL to open WhatsApp
 }
 
 export default function VoicenotePreviewDialog({
@@ -30,6 +30,17 @@ export default function VoicenotePreviewDialog({
 }: VoicenotePreviewDialogProps) {
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = audioDataUri;
+    // Sanitize customer name for the filename
+    const safeCustomerName = customerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `pesan_suara_${safeCustomerName}.wav`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   React.useEffect(() => {
     if (isOpen && audioRef.current) {
@@ -45,7 +56,7 @@ export default function VoicenotePreviewDialog({
             <Mic /> Pratinjau Pesan Suara
           </DialogTitle>
           <DialogDescription>
-            Ini adalah pratinjau pesan suara yang akan dibuat untuk <strong>{customerName}</strong>. Klik kirim untuk membuka WhatsApp.
+            Pesan suara untuk <strong>{customerName}</strong> telah dibuat. Unduh file audio lalu buka WhatsApp untuk mengirimnya.
           </DialogDescription>
         </DialogHeader>
         <div className="my-4">
@@ -53,13 +64,14 @@ export default function VoicenotePreviewDialog({
             Your browser does not support the audio element.
           </audio>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Batal
+        <DialogFooter className="sm:justify-between gap-2">
+          <Button variant="outline" onClick={handleDownload}>
+            <Download className="mr-2 h-4 w-4" />
+            Unduh Pesan Suara (.wav)
           </Button>
           <Button onClick={onConfirm}>
-            <Send className="mr-2 h-4 w-4" />
-            Kirim Notifikasi
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Buka WhatsApp
           </Button>
         </DialogFooter>
       </DialogContent>

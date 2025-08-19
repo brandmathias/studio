@@ -193,13 +193,14 @@ Terima Kasih`;
         description: `AI sedang membuat pesan suara untuk ${customer.name}.`,
     });
     try {
-        const message = getNotificationMessage(customer);
-        const { audioDataUri } = await generateCustomerVoicenote({ text: message });
-
         const formattedPhoneNumber = customer.phone_number.startsWith('0') 
             ? `62${customer.phone_number.substring(1)}` 
             : customer.phone_number.replace(/[^0-9]/g, '');
-        const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodeURIComponent(message)}`;
+        // Note: The text parameter is no longer needed for the WhatsApp URL itself
+        const whatsappUrl = `https://wa.me/${formattedPhoneNumber}`;
+
+        const message = getNotificationMessage(customer);
+        const { audioDataUri } = await generateCustomerVoicenote({ text: message });
 
         setActiveVoicenote({
             audioDataUri,
@@ -257,7 +258,7 @@ Terima Kasih`;
             customerName={activeVoicenote.customerName}
             onConfirm={() => {
                 window.open(activeVoicenote.whatsappUrl, '_blank');
-                setActiveVoicenote(null);
+                 // We don't close the dialog, allowing user to download or open again
             }}
           />
         )}
