@@ -60,7 +60,7 @@ const prompt = ai.definePrompt({
     prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian.
 Your task is to meticulously extract customer and loan information from the provided PDF document. The document is a report of customers whose pawned items are due.
 
-Analyze the document provided via the data URI and identify each customer record. For each record, extract the following fields and return them as a structured JSON object matching the schema:
+**You must process all pages of the document from beginning to end.** Analyze the document provided via the data URI and identify each customer record across all pages. For each record, extract the following fields and return them as a structured JSON object matching the schema:
 - sbg_number
 - rubrik
 - name
@@ -74,7 +74,7 @@ Analyze the document provided via the data URI and identify each customer record
 - alamat
 - status
 
-Make sure to format all dates as DD/MM/YYYY. Convert all monetary values to numbers, removing any currency symbols or formatting.
+Make sure to format all dates as DD/MM/YYYY. Convert all monetary values to numbers, removing any currency symbols or formatting. Combine all customers found across all pages into a single list.
 
 If the document is unreadable, contains no customer data, or is not a valid pawnshop report, return an empty array for the 'customers' field. Do not guess or hallucinate data.
 
