@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { addDays, subDays, format, differenceInDays, isSameDay } from 'date-fns';
+import { addDays, subDays, format, differenceInDays, isSameDay, startOfToday } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -39,7 +39,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
-import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -64,6 +63,8 @@ import {
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { prioritizeCustomer } from './actions';
+
 
 const priorityIndonesianMap: Record<string, Customer['priority']> = {
   high: 'tinggi',
@@ -104,7 +105,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
     name: 'Brenda Febrina Zusriadi',
     phone_number: '085242041829',
     email: 'brenda.febrina@example.com',
-    due_date: '2025-08-17',
+    due_date: format(subDays(new Date(), 5), 'yyyy-MM-dd'), // 5 days past due
     transaction_type: 'angsuran',
     priority: 'none',
     loan_value: 3000000,
@@ -118,7 +119,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
     name: 'Savio Hendriko Palendeng',
     phone_number: '0857-5716-0254',
     email: 'savio.hendriko@example.com',
-    due_date: '2025-08-20',
+    due_date: format(subDays(new Date(), 20), 'yyyy-MM-dd'), // 20 days past due (auction warning)
     transaction_type: 'gadai',
     priority: 'none',
     loan_value: 12000000,
@@ -239,28 +240,53 @@ export default function DashboardPage() {
 
   const getNotificationMessage = (customer: Customer): string => {
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
-    
+    const today = startOfToday();
+    const daysOverdue = differenceInDays(today, new Date(customer.due_date));
+
     let headerLine = '';
-    if (customer.upc === 'Pegadaian Wanea') {
+    let messageBody = '';
+    const upc = getUpcFromId(customer.id);
+
+    if (upc === 'Pegadaian Wanea') {
         headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
-    } else if (customer.upc === 'Pegadaian Ranotana') {
+    } else if (upc === 'Pegadaian Ranotana') {
         headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
     } else {
-        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
-        headerLine = `Nasabah PEGADAIAN ${upcName}`;
+        headerLine = `Nasabah PEGADAIAN`;
+    }
+
+    // Logic for different templates
+    if (daysOverdue > 14) {
+        // Final Auction Warning
+        messageBody = `*PERINGATAN LELANG (TERAKHIR)*
+
+Gadaian Anda No. ${customer.id} (${customer.barang_jaminan}) telah melewati batas jatuh tempo (${dueDate}) lebih dari 14 hari.
+
+Untuk menghindari proses lelang, segera lakukan pelunasan atau perpanjangan di cabang terdekat dalam waktu 2x24 jam. Abaikan pesan ini jika sudah melakukan pembayaran.`;
+    } else if (daysOverdue > 0) {
+        // Past Due Notification
+        messageBody = `*Gadaian Anda Sudah Jatuh Tempo*
+
+Gadaian No. ${customer.id} (${customer.barang_jaminan}) telah melewati tanggal jatuh tempo pada ${dueDate}.
+
+Akan dikenakan denda keterlambatan. Mohon segera lakukan pembayaran untuk menghindari denda yang lebih besar atau risiko lelang.`;
+    } else {
+        // Standard Due Date Reminder
+        messageBody = `*Gadaian Anda akan segera Jatuh Tempo*
+
+Gadaian No. ${customer.id} (${customer.barang_jaminan}) akan jatuh tempo pada tanggal *${dueDate}*.
+
+Segera lakukan pembayaran bunga/perpanjangan/cek TAMBAH PINJAMAN. Pembayaran bisa dilakukan secara online melalui aplikasi PEGADAIAN DIGITAL atau e-channel lainnya.`;
     }
 
     return `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.id} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}*
-
-Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
-
-Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
+${messageBody}
 
 Terima Kasih`;
-  };
+};
+
 
   const handleCopyMessage = (customer: Customer) => {
     const message = getNotificationMessage(customer);
@@ -328,29 +354,7 @@ Terima Kasih`;
 
   const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
     const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
-    const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
-    
-    let headerLine = '';
-    if (customer.upc === 'Pegadaian Wanea') {
-        headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
-    } else if (customer.upc === 'Pegadaian Ranotana') {
-        headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
-    } else {
-        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
-        headerLine = `Nasabah PEGADAIAN ${upcName}`;
-    }
-
-    const emailMessage = `${headerLine}
-
-*Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
-
-*Gadaian ${customer.id} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}.*
-
-Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
-
-Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL.
-
-Terima Kasih`;
+    const emailMessage = getNotificationMessage(customer);
     
     const eventDescription = encodeURIComponent(emailMessage);
     
@@ -745,5 +749,3 @@ Terima Kasih`;
     </div>
   );
 }
-
-    

@@ -19,22 +19,28 @@ import { Input } from '@/components/ui/input';
 import { parsePdf } from './actions';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
+import { differenceInDays, startOfToday } from 'date-fns';
 
-const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
+
+const parseDateForFormatting = (dateString: string): Date | null => {
+    if (!dateString) return null;
     // Handles DD/MM/YYYY from AI
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
         const [day, month, year] = dateString.split('/');
-        return new Date(`${year}-${month}-${day}`).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
+        const d = new Date(`${year}-${month}-${day}`);
+        return isNaN(d.getTime()) ? null : d;
     }
-    // Fallback for other formats
+    // Fallback for other formats like YYYY-MM-DD
     const d = new Date(dateString);
-    if (isNaN(d.getTime())) return dateString;
-    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    if (isNaN(d.getTime())) return null;
+    return d;
+};
+
+
+const formatDate = (dateString: string) => {
+    const date = parseDateForFormatting(dateString);
+    if (!date) return 'N/A';
+    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
 const formatCurrency = (value: number) => {
@@ -140,30 +146,61 @@ export default function PdfBroadcastPage() {
     }
   };
   
-  const getNotificationMessage = (customer: BroadcastCustomer): string => {
-    const dueDate = formatDate(customer.due_date).toLocaleUpperCase();
-    const upc = getUpcFromId(customer.sbg_number);
+ const getNotificationMessage = (customer: BroadcastCustomer): string => {
+    const dueDateString = customer.due_date;
+    const dueDate = parseDateForFormatting(dueDateString);
+
+    if (!dueDate) {
+        return `Data jatuh tempo untuk nasabah ${customer.name} tidak valid.`;
+    }
+
+    const formattedDueDate = formatDate(dueDateString).toLocaleUpperCase();
+    const today = startOfToday();
+    const daysOverdue = differenceInDays(today, dueDate);
 
     let headerLine = '';
+    let messageBody = '';
+    const upc = getUpcFromId(customer.sbg_number);
+
     if (upc === 'Pegadaian Wanea') {
         headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
     } else if (upc === 'Pegadaian Ranotana') {
         headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
     } else {
-        headerLine = `Nasabah PEGADAIAN`;
+        headerLine = 'Nasabah PEGADAIAN';
     }
-    
+
+    // Logic for different templates
+    if (daysOverdue > 14) {
+        // Final Auction Warning
+        messageBody = `*PERINGATAN LELANG (TERAKHIR)*
+
+Gadaian Anda No. ${customer.sbg_number} (${customer.barang_jaminan}) telah melewati batas jatuh tempo (${formattedDueDate}) lebih dari 14 hari.
+
+Untuk menghindari proses lelang, segera lakukan pelunasan atau perpanjangan di cabang terdekat dalam waktu 2x24 jam. Abaikan pesan ini jika sudah melakukan pembayaran.`;
+    } else if (daysOverdue > 0) {
+        // Past Due Notification
+        messageBody = `*Gadaian Anda Sudah Jatuh Tempo*
+
+Gadaian No. ${customer.sbg_number} (${customer.barang_jaminan}) telah melewati tanggal jatuh tempo pada ${formattedDueDate}.
+
+Akan dikenakan denda keterlambatan. Mohon segera lakukan pembayaran untuk menghindari denda yang lebih besar atau risiko lelang.`;
+    } else {
+        // Standard Due Date Reminder
+        messageBody = `*Gadaian Anda akan segera Jatuh Tempo*
+
+Gadaian No. ${customer.sbg_number} (${customer.barang_jaminan}) akan jatuh tempo pada tanggal *${formattedDueDate}*.
+
+Segera lakukan pembayaran bunga/perpanjangan/cek TAMBAH PINJAMAN. Pembayaran bisa dilakukan secara online melalui aplikasi PEGADAIAN DIGITAL atau e-channel lainnya.`;
+    }
+
     return `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.sbg_number} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}*
-
-Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
-
-Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
+${messageBody}
 
 Terima Kasih`;
-  };
+};
 
   const handleCopyMessage = (customer: BroadcastCustomer) => {
     const message = getNotificationMessage(customer);
