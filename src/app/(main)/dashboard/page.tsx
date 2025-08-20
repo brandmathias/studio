@@ -40,7 +40,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
-import { segmentCustomer } from '@/ai/flows/customer-segmentation';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -168,39 +167,29 @@ export default function DashboardPage() {
     setIsPrioritizing(true);
     toast({
       title: 'AI Analysis Started',
-      description: 'AI is analyzing, prioritizing, and segmenting customers. This may take a moment.',
+      description: 'AI is analyzing and prioritizing customers. This may take a moment.',
     });
     try {
       const updatedCustomers = await Promise.all(
         customers.map(async (customer) => {
           const daysLate = Math.max(0, differenceInDays(new Date(), new Date(customer.due_date)));
           
-          const priorityPromise = prioritizeCustomer({
+          const { priority } = await prioritizeCustomer({
             dueDate: customer.due_date,
             loanValue: customer.loan_value,
             daysLate,
             hasBeenLateBefore: customer.has_been_late_before,
           });
 
-          const segmentPromise = segmentCustomer({
-            loan_value: customer.loan_value,
-            has_been_late_before: customer.has_been_late_before,
-            transaction_count: customer.transaction_count,
-            days_since_last_transaction: customer.days_since_last_transaction
-          });
-
-          const [priorityResult, segmentResult] = await Promise.all([priorityPromise, segmentPromise]);
-
-          const newPriority = priorityIndonesianMap[priorityResult.priority] || 'rendah';
-          const newSegment = segmentResult.segment || 'none';
+          const newPriority = priorityIndonesianMap[priority] || 'rendah';
           
-          return { ...customer, priority: newPriority, segment: newSegment };
+          return { ...customer, priority: newPriority };
         })
       );
       setCustomers(updatedCustomers);
       toast({
         title: 'Analysis Complete',
-        description: 'All customers have been successfully prioritized and segmented by the AI system.',
+        description: 'All customers have been successfully prioritized by the AI system.',
         variant: 'default',
         className: 'bg-accent/30 border-accent/50'
       });
@@ -576,7 +565,7 @@ Terima Kasih`;
                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
                             {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-                            Auto-Prioritize & Segment
+                            Auto-Prioritize
                         </Button>
                         <Button onClick={handleNotifySelected} className="w-full sm:w-auto" disabled={selectedCustomers.size === 0}>
                             <Send className="mr-2 h-4 w-4" />
