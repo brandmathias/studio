@@ -73,7 +73,7 @@ const priorityIndonesianMap: Record<string, Customer['priority']> = {
 
 const getUpcFromId = (id: string): Customer['upc'] => {
   const prefix = id.substring(0, 5);
-  if (prefix === '11798') {
+  if (prefix === '11787') {
     return 'Pegadaian Wanea';
   }
   if (prefix === '11793') {
@@ -114,7 +114,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
     barang_jaminan: 'Cincin Emas 5gr',
   },
   {
-    id: '1179811122233344',
+    id: '1178711122233344',
     name: 'Savio Hendriko Palendeng',
     phone_number: '0857-5716-0254',
     email: 'savio.hendriko@example.com',
