@@ -136,6 +136,8 @@ const MOCK_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
   segment: 'none',
 }));
 
+type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -238,14 +240,11 @@ export default function DashboardPage() {
     }
   };
 
-  const getNotificationMessage = (customer: Customer): string => {
+  const getNotificationMessage = (customer: Customer, template: NotificationTemplate): string => {
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
-    const today = startOfToday();
-    const daysOverdue = differenceInDays(today, new Date(customer.due_date));
-
-    let headerLine = '';
     let messageBody = '';
     const upc = getUpcFromId(customer.id);
+    let headerLine = '';
 
     if (upc === 'Pegadaian Wanea') {
         headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
@@ -255,28 +254,29 @@ export default function DashboardPage() {
         headerLine = `Nasabah PEGADAIAN`;
     }
 
-    // Logic for different templates
-    if (daysOverdue > 14) {
-        // Final Auction Warning
-        messageBody = `*PERINGATAN LELANG (TERAKHIR)*
+    switch (template) {
+        case 'peringatan-lelang':
+            messageBody = `*PERINGATAN LELANG (TERAKHIR)*
 
 Gadaian Anda No. ${customer.id} (${customer.barang_jaminan}) telah melewati batas jatuh tempo (${dueDate}) lebih dari 14 hari.
 
 Untuk menghindari proses lelang, segera lakukan pelunasan atau perpanjangan di cabang terdekat dalam waktu 2x24 jam. Abaikan pesan ini jika sudah melakukan pembayaran.`;
-    } else if (daysOverdue > 0) {
-        // Past Due Notification
-        messageBody = `*Gadaian Anda Sudah Jatuh Tempo*
+            break;
+        case 'keterlambatan':
+            messageBody = `*Gadaian Anda Sudah Jatuh Tempo*
 
 Gadaian No. ${customer.id} (${customer.barang_jaminan}) telah melewati tanggal jatuh tempo pada ${dueDate}.
 
 Akan dikenakan denda keterlambatan. Mohon segera lakukan pembayaran untuk menghindari denda yang lebih besar atau risiko lelang.`;
-    } else {
-        // Standard Due Date Reminder
-        messageBody = `*Gadaian Anda akan segera Jatuh Tempo*
+            break;
+        case 'jatuh-tempo':
+        default:
+            messageBody = `*Gadaian Anda akan segera Jatuh Tempo*
 
 Gadaian No. ${customer.id} (${customer.barang_jaminan}) akan jatuh tempo pada tanggal *${dueDate}*.
 
 Segera lakukan pembayaran bunga/perpanjangan/cek TAMBAH PINJAMAN. Pembayaran bisa dilakukan secara online melalui aplikasi PEGADAIAN DIGITAL atau e-channel lainnya.`;
+            break;
     }
 
     return `${headerLine}
@@ -288,8 +288,8 @@ Terima Kasih`;
 };
 
 
-  const handleCopyMessage = (customer: Customer) => {
-    const message = getNotificationMessage(customer);
+  const handleCopyMessage = (customer: Customer, template: NotificationTemplate) => {
+    const message = getNotificationMessage(customer, template);
     navigator.clipboard.writeText(message).then(() => {
       toast({
         title: 'Pesan Disalin',
@@ -305,8 +305,8 @@ Terima Kasih`;
     });
   };
   
-  const handleSendNotification = (customer: Customer) => {
-    const message = getNotificationMessage(customer);
+  const handleSendNotification = (customer: Customer, template: NotificationTemplate) => {
+    const message = getNotificationMessage(customer, template);
     const encodedMessage = encodeURIComponent(message);
     
     const formattedPhoneNumber = customer.phone_number.startsWith('0') 
@@ -319,7 +319,7 @@ Terima Kasih`;
     setNotificationsSent(prev => prev + 1);
   };
   
-  const handleGenerateVoicenote = async (customer: Customer) => {
+  const handleGenerateVoicenote = async (customer: Customer, template: NotificationTemplate) => {
     setIsGeneratingVoicenote(true);
     toast({
         title: 'Membuat Pesan Suara...',
@@ -331,7 +331,7 @@ Terima Kasih`;
             : customer.phone_number.replace(/[^0-9]/g, '');
         const whatsappUrl = `https://wa.me/${formattedPhoneNumber}`;
 
-        const message = getNotificationMessage(customer);
+        const message = getNotificationMessage(customer, template);
         const { audioDataUri } = await generateCustomerVoicenote({ text: message });
 
         setActiveVoicenote({
@@ -354,7 +354,8 @@ Terima Kasih`;
 
   const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
     const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
-    const emailMessage = getNotificationMessage(customer);
+    // Use the standard notification message for calendar events
+    const emailMessage = getNotificationMessage(customer, 'jatuh-tempo'); 
     
     const eventDescription = encodeURIComponent(emailMessage);
     
@@ -409,7 +410,9 @@ Terima Kasih`;
     const customersToNotify = customers.filter((c) => selectedCustomers.has(c.id));
     
     customersToNotify.forEach((customer) => {
-      handleSendNotification(customer);
+      // For bulk notifications, we default to the standard 'jatuh-tempo' template.
+      // A more advanced implementation could involve a dialog to select the template for all.
+      handleSendNotification(customer, 'jatuh-tempo');
     });
 
     setSelectedCustomers(new Set());
@@ -692,15 +695,41 @@ Terima Kasih`;
                                 </TableCell>
                                 <TableCell className="space-x-2">
                                   <div className="flex items-center gap-2">
-                                    <Button size="sm" onClick={() => handleCopyMessage(customer)} variant="outline">
-                                        <ClipboardCopy className="h-4 w-4" />
-                                    </Button>
-                                    <Button size="sm" onClick={() => handleSendNotification(customer)} variant="outline">
-                                        <Bell className="h-4 w-4" />
-                                    </Button>
-                                    <Button size="sm" onClick={() => handleGenerateVoicenote(customer)} disabled={isGeneratingVoicenote}>
-                                        {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button size="sm" variant="outline"><ClipboardCopy className="h-4 w-4" /></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'jatuh-tempo')}>Copy Pengingat</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'keterlambatan')}>Copy Keterlambatan</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'peringatan-lelang')}>Copy Peringatan Lelang</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                             <Button size="sm" variant="outline"><Bell className="h-4 w-4" /></Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => handleSendNotification(customer, 'jatuh-tempo')}>Kirim Pengingat</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleSendNotification(customer, 'keterlambatan')}>Kirim Keterlambatan</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleSendNotification(customer, 'peringatan-lelang')}>Kirim Peringatan Lelang</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button size="sm" disabled={isGeneratingVoicenote}>
+                                                {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'jatuh-tempo')}>Buat VN Pengingat</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'keterlambatan')}>Buat VN Keterlambatan</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button size="sm" variant="outline">
