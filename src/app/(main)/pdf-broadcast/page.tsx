@@ -147,7 +147,7 @@ export default function PdfBroadcastPage() {
     return `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.sbg_number} Sudah JATUH TEMPO tanggal ${dueDate}*
+*Gadaian ${customer.sbg_number} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}*
 
 Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
 

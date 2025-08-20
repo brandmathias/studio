@@ -12,6 +12,7 @@ export interface Customer {
   upc: 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A';
   transaction_count: number; // For segmentation
   days_since_last_transaction: number; // For segmentation
+  barang_jaminan: string;
 }
 
 export interface BroadcastCustomer {

@@ -97,6 +97,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
     has_been_late_before: false,
     transaction_count: 6,
     days_since_last_transaction: 30,
+    barang_jaminan: 'Laptop Macbook Pro',
   },
   {
     id: '1179300812345678',
@@ -110,6 +111,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
     has_been_late_before: false,
     transaction_count: 1,
     days_since_last_transaction: 200,
+    barang_jaminan: 'Cincin Emas 5gr',
   },
   {
     id: '1179811122233344',
@@ -123,6 +125,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
     has_been_late_before: true,
     transaction_count: 8,
     days_since_last_transaction: 45,
+    barang_jaminan: 'Motor Honda Beat',
   },
 ];
 
@@ -251,7 +254,7 @@ export default function DashboardPage() {
     return `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}*
+*Gadaian ${customer.id} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}*
 
 Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
 
@@ -343,7 +346,7 @@ Terima Kasih`;
 
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.id} Sudah JATUH TEMPO tanggal ${dueDate}.*
+*Gadaian ${customer.id} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}.*
 
 Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
 
