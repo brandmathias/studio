@@ -86,18 +86,18 @@ const getUpcFromId = (id: string): Customer['upc'] => {
 // Enhanced Mock Data to represent different customer segments
 const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
   {
-    id: '1179324010023012',
-    name: 'Brando Mathias Zusriadi',
+    id: '1178724010014909',
+    name: 'Vycency Tacya Runtu',
     phone_number: '082188769679',
-    email: 'brandomathiasz13@gmail.com',
-    due_date: '2025-08-12',
+    email: 'vycency.tacya@example.com',
+    due_date: '2025-08-07',
     transaction_type: 'gadai',
     priority: 'none',
-    loan_value: 8000000,
+    loan_value: 20000000,
     has_been_late_before: false,
     transaction_count: 6,
     days_since_last_transaction: 30,
-    barang_jaminan: 'Laptop Macbook Pro',
+    barang_jaminan: 'LIMA CINCIN + 1GLG DITAKSIR PERHIASAN EMAS 21 KARAT BERAT 39.6/38.6 GRAM',
   },
   {
     id: '1179300812345678',
@@ -241,11 +241,10 @@ export default function DashboardPage() {
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
     
     let headerLine = '';
-    if (customer.upc === 'Pegadaian Ranotana') {
+    if (customer.upc === 'Pegadaian Wanea') {
+        headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
+    } else if (customer.upc === 'Pegadaian Ranotana') {
         headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
-    } else if (customer.upc === 'Pegadaian Wanea') {
-        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
-        headerLine = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU`;
     } else {
         const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
         headerLine = `Nasabah PEGADAIAN ${upcName}`;
@@ -332,11 +331,10 @@ Terima Kasih`;
     const dueDate = format(new Date(customer.due_date), 'dd MMMM yyyy').toLocaleUpperCase();
     
     let headerLine = '';
-    if (customer.upc === 'Pegadaian Ranotana') {
+    if (customer.upc === 'Pegadaian Wanea') {
+        headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
+    } else if (customer.upc === 'Pegadaian Ranotana') {
         headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
-    } else if (customer.upc === 'Pegadaian Wanea') {
-        const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
-        headerLine = `Nasabah PEGADAIAN ${upcName} / TANJUNG BATU`;
     } else {
         const upcName = customer.upc.replace('Pegadaian ', '').toLocaleUpperCase();
         headerLine = `Nasabah PEGADAIAN ${upcName}`;
@@ -747,3 +745,5 @@ Terima Kasih`;
     </div>
   );
 }
+
+    
