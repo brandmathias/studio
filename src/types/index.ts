@@ -8,8 +8,10 @@ export interface Customer {
   priority: 'tinggi' | 'sedang' | 'rendah' | 'none';
   loan_value: number;
   has_been_late_before: boolean;
-  segment: 'Platinum' | 'Reguler' | 'Berisiko' | 'none';
+  segment: 'Platinum' | 'Reguler' | 'Berisiko' | 'Potensi Churn' | 'none';
   upc: 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A';
+  transaction_count: number; // For segmentation
+  days_since_last_transaction: number; // For segmentation
 }
 
 export interface BroadcastCustomer {

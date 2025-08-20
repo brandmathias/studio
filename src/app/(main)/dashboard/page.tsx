@@ -40,6 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { prioritizeCustomer } from '@/ai/flows/auto-prioritization';
+import { segmentCustomer } from '@/ai/flows/customer-segmentation';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -84,7 +85,7 @@ const getUpcFromId = (id: string): Customer['upc'] => {
 
 
 // Enhanced Mock Data to represent different customer segments
-const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
+const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
   {
     id: '1179324010023012',
     name: 'Brando Mathias Zusriadi',
@@ -95,7 +96,8 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
     priority: 'none',
     loan_value: 8000000,
     has_been_late_before: false,
-    segment: 'none'
+    transaction_count: 6,
+    days_since_last_transaction: 30,
   },
   {
     id: '1179300812345678',
@@ -107,7 +109,8 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
     priority: 'none',
     loan_value: 3000000,
     has_been_late_before: false,
-    segment: 'none'
+    transaction_count: 1,
+    days_since_last_transaction: 200,
   },
   {
     id: '1179811122233344',
@@ -119,13 +122,15 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc'>[] = [
     priority: 'none',
     loan_value: 12000000,
     has_been_late_before: true,
-    segment: 'none'
+    transaction_count: 8,
+    days_since_last_transaction: 45,
   },
 ];
 
 const MOCK_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
   ...c,
   upc: getUpcFromId(c.id),
+  segment: 'none',
 }));
 
 
@@ -162,37 +167,48 @@ export default function DashboardPage() {
   const handleAutoPrioritize = async () => {
     setIsPrioritizing(true);
     toast({
-      title: 'Auto-Prioritization Started',
-      description: 'AI is analyzing and prioritizing customers. This may take a moment.',
+      title: 'AI Analysis Started',
+      description: 'AI is analyzing, prioritizing, and segmenting customers. This may take a moment.',
     });
     try {
       const updatedCustomers = await Promise.all(
         customers.map(async (customer) => {
           const daysLate = Math.max(0, differenceInDays(new Date(), new Date(customer.due_date)));
-          const result = await prioritizeCustomer({
+          
+          const priorityPromise = prioritizeCustomer({
             dueDate: customer.due_date,
             loanValue: customer.loan_value,
             daysLate,
             hasBeenLateBefore: customer.has_been_late_before,
           });
-          const newPriority = priorityIndonesianMap[result.priority] || 'rendah';
-          // Placeholder for segmentation logic to be added later
-          const newSegment: Customer['segment'] = customer.loan_value > 10000000 ? 'Platinum' : customer.has_been_late_before ? 'Berisiko' : 'Reguler';
+
+          const segmentPromise = segmentCustomer({
+            loan_value: customer.loan_value,
+            has_been_late_before: customer.has_been_late_before,
+            transaction_count: customer.transaction_count,
+            days_since_last_transaction: customer.days_since_last_transaction
+          });
+
+          const [priorityResult, segmentResult] = await Promise.all([priorityPromise, segmentPromise]);
+
+          const newPriority = priorityIndonesianMap[priorityResult.priority] || 'rendah';
+          const newSegment = segmentResult.segment || 'none';
+          
           return { ...customer, priority: newPriority, segment: newSegment };
         })
       );
       setCustomers(updatedCustomers);
       toast({
-        title: 'Prioritization Complete',
-        description: 'All customers have been successfully prioritized by the AI system.',
+        title: 'Analysis Complete',
+        description: 'All customers have been successfully prioritized and segmented by the AI system.',
         variant: 'default',
         className: 'bg-accent/30 border-accent/50'
       });
     } catch (error) {
-      console.error('Prioritization failed:', error);
+      console.error('AI analysis failed:', error);
       toast({
         title: 'Error',
-        description: 'Failed to prioritize customers. Please try again.',
+        description: 'Failed to analyze customers. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -293,7 +309,6 @@ Terima Kasih`;
         description: `AI sedang membuat pesan suara untuk ${customer.name}.`,
     });
     try {
-        // We only need the phone number for the WhatsApp URL, no text needed.
         const formattedPhoneNumber = customer.phone_number.startsWith('0') 
             ? `62${customer.phone_number.substring(1)}` 
             : customer.phone_number.replace(/[^0-9]/g, '');
@@ -416,22 +431,24 @@ Terima Kasih`;
   const priorityData = React.useMemo(() => {
     const counts = customers.reduce((acc, customer) => {
       if (customer.priority !== 'none') {
-        acc[customer.priority] = (acc[customer.priority] || 0) + 1;
+        const priorityName = customer.priority.charAt(0).toUpperCase() + customer.priority.slice(1);
+        acc[priorityName] = (acc[priorityName] || 0) + 1;
       }
       return acc;
-    }, {} as Record<Customer['priority'], number>);
+    }, {} as Record<string, number>);
     
     return [
-        { name: 'Tinggi', value: counts.tinggi || 0, color: 'hsl(var(--destructive))' },
-        { name: 'Sedang', value: counts.sedang || 0, color: 'hsl(var(--accent))' },
-        { name: 'Rendah', value: counts.rendah || 0, color: 'hsl(var(--secondary))' },
+        { name: 'Tinggi', value: counts.Tinggi || 0, color: 'hsl(var(--destructive))' },
+        { name: 'Sedang', value: counts.Sedang || 0, color: 'hsl(var(--accent))' },
+        { name: 'Rendah', value: counts.Rendah || 0, color: 'hsl(var(--secondary))' },
     ].filter(d => d.value > 0);
   }, [customers]);
 
-  const segmentVariantMap: Record<string, VariantProps<typeof Badge>['variant']> = {
+  const segmentVariantMap: Record<Customer['segment'], VariantProps<typeof Badge>['variant']> = {
       'Platinum': 'default',
       'Reguler': 'secondary',
       'Berisiko': 'destructive',
+      'Potensi Churn': 'outline',
       'none': 'outline',
   };
 
@@ -447,7 +464,6 @@ Terima Kasih`;
             onConfirm={() => {
                 window.open(activeVoicenote.whatsappUrl, '_blank');
                 setNotificationsSent(prev => prev + 1);
-                // We don't close the dialog, allowing user to download or open again
             }}
           />
         )}
