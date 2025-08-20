@@ -24,18 +24,18 @@ export type ExtractCustomersInput = z.infer<typeof ExtractCustomersInputSchema>;
 
 // Zod schema for a single customer, matching the BroadcastCustomer type
 const CustomerSchema = z.object({
-    sbg_number: z.string().describe("Nomor SBG (Surat Bukti Gadai)."),
-    rubrik: z.string().describe("Rubrik."),
+    sbg_number: z.string().describe("Nomor SBG (Surat Bukti Gadai). Ekstrak nilai ini persis seperti yang tertulis."),
+    rubrik: z.string().describe("Kode Rubrik. Ekstrak nilai ini persis seperti yang tertulis (contoh: A - KT, B1 - KT)."),
     name: z.string().describe("Nama lengkap nasabah."),
     phone_number: z.string().describe("Nomor telepon atau HP nasabah."),
     credit_date: z.string().describe("Tanggal kredit dalam format DD/MM/YYYY."),
     due_date: z.string().describe("Tanggal jatuh tempo dalam format DD/MM/YYYY."),
-    loan_value: z.number().describe("Nilai pinjaman (UP atau Uang Pinjaman)."),
+    loan_value: z.number().describe("Nilai pinjaman (UP atau Uang Pinjaman). Ini harus berupa angka."),
     barang_jaminan: z.string().describe("Deskripsi barang yang dijaminkan."),
-    taksiran: z.number().describe("Nilai taksiran barang jaminan."),
-    sewa_modal: z.number().describe("Nilai sewa modal (SM)."),
+    taksiran: z.number().describe("Nilai taksiran barang jaminan. Ini harus berupa angka."),
+    sewa_modal: z.number().describe("Nilai sewa modal (SM). Ini harus berupa angka."),
     alamat: z.string().describe("Alamat lengkap nasabah."),
-    status: z.string().describe("Status gadai saat ini."),
+    status: z.string().describe("Status gadai saat ini (misalnya: 'Aktif')."),
 });
 
 const ExtractCustomersOutputSchema = z.object({
@@ -57,30 +57,27 @@ const prompt = ai.definePrompt({
     name: 'extractCustomersFromPdfPrompt',
     input: { schema: ExtractCustomersInputSchema },
     output: { schema: ExtractCustomersOutputSchema },
-    prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian. Your task is to extract all customer records from the provided PDF.
+    prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian. Your task is to extract all customer records from the provided PDF with extremely high accuracy.
 
-Follow this two-step process:
-1.  **Analyze the ENTIRE document**: First, go through all pages of the PDF from beginning to end and identify the total number of unique customer records in the document.
-2.  **Extract ALL records**: Once you have identified the total count, proceed to extract the details for every single record you found. Do not stop until you have extracted all of them.
+**Critical Instructions:**
+1.  **Analyze the ENTIRE document**: First, go through all pages of the PDF from beginning to end to understand its structure and identify all customer records.
+2.  **Extract ALL records**: Once you have analyzed the document, proceed to extract the details for every single record you found. Do not stop until all records are extracted.
+3.  **Extract-As-Is**: You MUST extract the data for each field exactly as it appears in the document. DO NOT assume, guess, or change any values. If a field contains a code like "B1 - KT", you must return "B1 - KT".
 
-**Extraction Fields:**
-For each record, extract these fields and return them as a structured JSON object:
-- sbg_number
-- rubrik
-- name
-- phone_number
-- credit_date
-- due_date
-- loan_value
-- barang_jaminan
-- taksiran
-- sewa_modal
-- alamat
-- status
-
-**Formatting Rules:**
-- Dates must be in DD/MM/YYYY format.
-- Monetary values must be numbers.
+**Extraction Fields & Rules:**
+For each record, extract these fields into a structured JSON object:
+- **sbg_number**: Extract the SBG number exactly as written.
+- **rubrik**: Extract the Rubrik code exactly as written.
+- **name**: Extract the full name of the customer.
+- **phone_number**: Extract the phone number.
+- **credit_date**: Extract the credit date. It MUST be in DD/MM/YYYY format.
+- **due_date**: Extract the due date. It MUST be in DD/MM/YYYY format.
+- **loan_value**: Extract the loan value (Uang Pinjaman/UP). It MUST be a number.
+- **barang_jaminan**: Extract the description of the collateral.
+- **taksiran**: Extract the estimated value of the collateral. It MUST be a number.
+- **sewa_modal**: Extract the lease capital value (SM). It MUST be a number.
+- **alamat**: Extract the full address.
+- **status**: Extract the current status.
 
 If the document is unreadable or contains no valid data, return an empty 'customers' array.
 
