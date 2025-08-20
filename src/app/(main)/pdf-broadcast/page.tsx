@@ -42,16 +42,16 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
-const parseDate = (dateString: string): Date | null => {
-    if (!dateString) return null;
-    const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-    if (!parts) {
-        const d = new Date(dateString);
-        return isNaN(d.getTime()) ? null : d;
-    }
-    const d = new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1]));
-    return isNaN(d.getTime()) ? null : d;
-}
+const getUpcFromId = (id: string): 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A' => {
+  const prefix = id.substring(0, 5);
+  if (prefix === '11787') {
+    return 'Pegadaian Wanea';
+  }
+  if (prefix === '11793') {
+    return 'Pegadaian Ranotana';
+  }
+  return 'N/A';
+};
 
 
 export default function PdfBroadcastPage() {
@@ -142,7 +142,16 @@ export default function PdfBroadcastPage() {
   
   const getNotificationMessage = (customer: BroadcastCustomer): string => {
     const dueDate = formatDate(customer.due_date).toLocaleUpperCase();
-    const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA'; // This can be made dynamic if needed
+    const upc = getUpcFromId(customer.sbg_number);
+
+    let headerLine = '';
+    if (upc === 'Pegadaian Wanea') {
+        headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
+    } else if (upc === 'Pegadaian Ranotana') {
+        headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+    } else {
+        headerLine = `Nasabah PEGADAIAN`;
+    }
     
     return `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
