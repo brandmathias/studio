@@ -29,3 +29,12 @@ export interface BroadcastCustomer {
   alamat: string;
   status: string;
 }
+
+export interface ScheduledTask {
+  id: string;
+  customerId: string;
+  customerName: string;
+  date: string; // ISO string for the date
+  note: string;
+  isCompleted: boolean;
+}

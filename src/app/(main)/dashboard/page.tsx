@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { addDays, subDays, format, differenceInDays, isSameDay, startOfToday, isPast } from 'date-fns';
+import { addDays, subDays, format, differenceInDays, isSameDay, startOfToday, isPast, parseISO } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuEmpty,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -38,7 +39,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import type { Customer } from '@/types';
+import type { Customer, ScheduledTask } from '@/types';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import AuctionRiskDialog from '@/components/AuctionRiskDialog';
@@ -61,12 +62,15 @@ import {
   Mic,
   ClipboardCopy,
   ShieldAlert,
+  Trash2,
+  CheckCircle2,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { prioritizeCustomer } from './actions';
 import { predictAuctionRisk, type PredictAuctionRiskOutput } from '@/ai/flows/auction-risk-predictor';
+import { Input } from '@/components/ui/input';
 
 
 const priorityIndonesianMap: Record<string, Customer['priority']> = {
@@ -162,6 +166,32 @@ export default function DashboardPage() {
     whatsappUrl: string;
     customerName: string;
   } | null>(null);
+
+  const [tasks, setTasks] = React.useState<ScheduledTask[]>([]);
+  const customerRowsRef = React.useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  // Load tasks from localStorage on initial render
+  React.useEffect(() => {
+    try {
+      const storedTasks = localStorage.getItem('gadaiAlertTasks');
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (error) {
+      console.error("Failed to parse tasks from localStorage", error);
+      setTasks([]);
+    }
+  }, []);
+
+  // Save tasks to localStorage whenever they change
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('gadaiAlertTasks', JSON.stringify(tasks));
+    } catch (error) {
+      console.error("Failed to save tasks to localStorage", error);
+    }
+  }, [tasks]);
+
 
   React.useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -387,44 +417,61 @@ Terima Kasih`;
     }
 };
 
-  const handleAddToCalendar = (customer: Customer, type: 'google' | 'ical') => {
-    const eventTitle = encodeURIComponent(`Jatuh Tempo Pegadaian: ${customer.name}`);
-    // Use the standard notification message for calendar events
-    const emailMessage = getNotificationMessage(customer, 'jatuh-tempo'); 
-    
-    const eventDescription = encodeURIComponent(emailMessage);
-    
-    const eventStartDate = format(new Date(customer.due_date), 'yyyyMMdd');
-    const eventEndDate = format(addDays(new Date(customer.due_date), 1), 'yyyyMMdd');
+  const handleSetReminder = (customerId: string, customerName: string, date: Date | undefined, note: string) => {
+    if (!date) {
+      toast({ title: 'Gagal', description: 'Silakan pilih tanggal pengingat.', variant: 'destructive' });
+      return;
+    }
+    const newTask: ScheduledTask = {
+      id: `${customerId}-${date.toISOString()}`,
+      customerId,
+      customerName,
+      date: date.toISOString(),
+      note,
+      isCompleted: false,
+    };
 
-    if (type === 'google') {
-      const guestEmail = customer.email ? `&add=${encodeURIComponent(customer.email)}` : '';
-      const googleUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${eventStartDate}/${eventEndDate}&details=${eventDescription}${guestEmail}`;
-      window.open(googleUrl, '_blank');
-    } else if (type === 'ical') {
-        const icalContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'BEGIN:VEVENT',
-            `UID:${customer.id}@pegadaian.co.id`,
-            `DTSTAMP:${format(new Date(), "yyyyMMdd'T'HHmmss'Z'")}`,
-            `DTSTART;VALUE=DATE:${eventStartDate}`,
-            `DTEND;VALUE=DATE:${eventEndDate}`,
-            `SUMMARY:${decodeURIComponent(eventTitle)}`,
-            `DESCRIPTION:${decodeURIComponent(eventDescription)}`,
-            'END:VEVENT',
-            'END:VCALENDAR'
-        ].join('\r\n');
+    setTasks(prevTasks => {
+      // Avoid duplicate tasks
+      const taskExists = prevTasks.some(task => task.id === newTask.id);
+      if (taskExists) {
+        toast({ title: 'Info', description: 'Pengingat untuk nasabah ini di tanggal tersebut sudah ada.', className: 'bg-accent/30 border-accent/50' });
+        return prevTasks;
+      }
+      return [...prevTasks, newTask];
+    });
 
-        const blob = new Blob([icalContent], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `pegadaian_reminder_${customer.id}.ics`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    toast({ title: 'Sukses', description: `Pengingat untuk ${customerName} telah diatur.` });
+  };
+  
+  const handleToggleTask = (taskId: string) => {
+    setTasks(tasks => tasks.map(task => 
+      task.id === taskId ? { ...task, isCompleted: !task.isCompleted } : task
+    ));
+  };
+  
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(tasks => tasks.filter(task => task.id !== taskId));
+    toast({ title: 'Pengingat Dihapus', variant: 'destructive' });
+  };
+  
+  const handleNavigateToCustomer = (customerId: string) => {
+    const row = customerRowsRef.current[customerId];
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.classList.add('animate-pulse', 'bg-accent/30');
+      setTimeout(() => {
+        row.classList.remove('animate-pulse', 'bg-accent/30');
+      }, 3000);
+    } else {
+      toast({ title: 'Gagal', description: 'Nasabah tidak ditemukan di tabel saat ini.', variant: 'destructive' });
     }
   };
+  
+  const todaysTasks = React.useMemo(() => {
+    const today = startOfToday();
+    return tasks.filter(task => isSameDay(parseISO(task.date), today));
+  }, [tasks]);
 
 
   const handleNotifySelected = () => {
@@ -483,6 +530,36 @@ Terima Kasih`;
       'Potensi Churn': 'outline',
       'none': 'outline',
   };
+  
+  const ReminderPopoverContent = ({ customerId, customerName }: { customerId: string, customerName: string }) => {
+    const [date, setDate] = React.useState<Date | undefined>();
+    const [note, setNote] = React.useState('');
+
+    return (
+        <PopoverContent className="w-auto p-4 space-y-4">
+            <p className="font-semibold text-center">Jadwalkan Tindak Lanjut</p>
+            <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+                disabled={(date) => date < startOfToday()}
+            />
+            <Input 
+                placeholder="Catatan singkat (e.g., janji bayar)" 
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+            />
+            <Button 
+                className="w-full" 
+                onClick={() => handleSetReminder(customerId, customerName, date, note)}
+                disabled={!date}
+            >
+                Setel Pengingat
+            </Button>
+        </PopoverContent>
+    );
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
@@ -517,6 +594,46 @@ Terima Kasih`;
           </a>
         </nav>
         <div className="flex items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full relative">
+                <Bell className="h-5 w-5" />
+                {todaysTasks.length > 0 && (
+                   <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
+                    {todaysTasks.length}
+                  </span>
+                )}
+                <span className="sr-only">Tugas Hari Ini</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Tugas Tindak Lanjut Hari Ini</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuEmpty>
+                 {todaysTasks.length === 0 ? (
+                  <p className="p-2 text-sm text-muted-foreground">Tidak ada tugas untuk hari ini.</p>
+                ) : (
+                  todaysTasks.map(task => (
+                    <DropdownMenuItem key={task.id} onSelect={(e) => e.preventDefault()} className="flex items-start gap-2">
+                        <Checkbox 
+                           checked={task.isCompleted} 
+                           onCheckedChange={() => handleToggleTask(task.id)}
+                           className="mt-1"
+                         />
+                        <div className="flex-1 cursor-pointer" onClick={() => handleNavigateToCustomer(task.customerId)}>
+                            <p className={cn("font-semibold", task.isCompleted && "line-through text-muted-foreground")}>{task.customerName}</p>
+                            <p className={cn("text-xs text-muted-foreground", task.isCompleted && "line-through")}>{task.note || 'Tidak ada catatan'}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteTask(task.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuEmpty>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -704,7 +821,12 @@ Terima Kasih`;
                             </TableRow>
                         ) : (
                             filteredCustomers.map((customer) => (
-                            <TableRow key={customer.id} data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}>
+                            <TableRow 
+                                key={customer.id} 
+                                data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}
+                                ref={(el) => customerRowsRef.current[customer.id] = el}
+                                className="transition-all duration-300"
+                            >
                                 <TableCell>
                                 <Checkbox
                                     checked={selectedCustomers.has(customer.id)}
@@ -771,22 +893,16 @@ Terima Kasih`;
                                             <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
+                                    
+                                    <Popover>
+                                        <PopoverTrigger asChild>
                                             <Button size="sm" variant="outline">
                                                 <CalendarPlus className="h-4 w-4" />
                                             </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => handleAddToCalendar(customer, 'google')}>
-                                                Google Calendar
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleAddToCalendar(customer, 'ical')}>
-                                                iCal / Outlook
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                        </PopoverTrigger>
+                                        <ReminderPopoverContent customerId={customer.id} customerName={customer.name} />
+                                    </Popover>
+                                    
                                      <Button 
                                         size="sm" 
                                         variant="outline"
