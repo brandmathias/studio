@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { addDays, subDays, format, differenceInDays, isSameDay, startOfToday } from 'date-fns';
+import { addDays, subDays, format, differenceInDays, isSameDay, startOfToday, isPast } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import type { Customer } from '@/types';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
+import AuctionRiskDialog from '@/components/AuctionRiskDialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import Chatbot from '@/components/Chatbot';
 import {
@@ -59,11 +60,13 @@ import {
   CalendarPlus,
   Mic,
   ClipboardCopy,
+  ShieldAlert,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { prioritizeCustomer } from './actions';
+import { predictAuctionRisk, type PredictAuctionRiskOutput } from '@/ai/flows/auction-risk-predictor';
 
 
 const priorityIndonesianMap: Record<string, Customer['priority']> = {
@@ -149,6 +152,9 @@ export default function DashboardPage() {
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
   const [notificationsSent, setNotificationsSent] = React.useState(0);
   const [isChatbotOpen, setIsChatbotOpen] = React.useState(false);
+  
+  const [isPredictingRisk, setIsPredictingRisk] = React.useState<string | null>(null);
+  const [auctionRiskData, setAuctionRiskData] = React.useState<PredictAuctionRiskOutput | null>(null);
 
   const [isGeneratingVoicenote, setIsGeneratingVoicenote] = React.useState(false);
   const [activeVoicenote, setActiveVoicenote] = React.useState<{
@@ -208,6 +214,35 @@ export default function DashboardPage() {
       });
     } finally {
       setIsPrioritizing(false);
+    }
+  };
+
+  const handlePredictRisk = async (customer: Customer) => {
+    setIsPredictingRisk(customer.id);
+    toast({
+      title: 'Menganalisis Risiko Lelang...',
+      description: `AI sedang memprediksi risiko untuk ${customer.name}.`,
+    });
+    try {
+      const daysLate = Math.max(0, differenceInDays(new Date(), new Date(customer.due_date)));
+      const result = await predictAuctionRisk({
+        loan_value: customer.loan_value,
+        days_late: daysLate,
+        has_been_late_before: customer.has_been_late_before,
+        segment: customer.segment,
+        barang_jaminan: customer.barang_jaminan,
+        transaction_count: customer.transaction_count,
+      });
+      setAuctionRiskData(result);
+    } catch (error) {
+      console.error('Auction risk prediction failed:', error);
+      toast({
+        title: 'Gagal Memprediksi',
+        description: 'Terjadi kesalahan saat menganalisis risiko. Silakan coba lagi.',
+        variant: 'destructive',
+      });
+    } finally {
+        setIsPredictingRisk(null);
     }
   };
   
@@ -464,6 +499,13 @@ Terima Kasih`;
             }}
           />
         )}
+      {auctionRiskData && (
+        <AuctionRiskDialog
+          isOpen={!!auctionRiskData}
+          onClose={() => setAuctionRiskData(null)}
+          data={auctionRiskData}
+        />
+      )}
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-10">
         <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
           <a
@@ -693,8 +735,8 @@ Terima Kasih`;
                                     {customer.priority === 'none' ? 'N/A' : customer.priority}
                                 </Badge>
                                 </TableCell>
-                                <TableCell className="space-x-2">
-                                  <div className="flex items-center gap-2">
+                                <TableCell className="space-x-1">
+                                  <div className="flex items-center gap-1">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button size="sm" variant="outline"><ClipboardCopy className="h-4 w-4" /></Button>
@@ -745,6 +787,15 @@ Terima Kasih`;
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
+                                     <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={() => handlePredictRisk(customer)}
+                                        disabled={isPredictingRisk === customer.id || !isPast(new Date(customer.due_date))}
+                                        title={!isPast(new Date(customer.due_date)) ? "Hanya untuk nasabah yang sudah lewat jatuh tempo" : "Prediksi Risiko Lelang"}
+                                      >
+                                        {isPredictingRisk === customer.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
+                                    </Button>
                                   </div>
                                 </TableCell>
                             </TableRow>
