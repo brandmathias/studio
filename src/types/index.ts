@@ -1,3 +1,5 @@
+export type FollowUpStatus = 'baru' | 'dihubungi' | 'janji-bayar' | 'tidak-merespons' | 'selesai';
+
 export interface Customer {
   id: string;
   name: string;
@@ -13,6 +15,7 @@ export interface Customer {
   transaction_count: number; // For segmentation
   days_since_last_transaction: number; // For segmentation
   barang_jaminan: string;
+  follow_up_status: FollowUpStatus;
 }
 
 export interface BroadcastCustomer {

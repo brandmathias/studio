@@ -63,6 +63,8 @@ import {
   ShieldAlert,
   Trash2,
   CheckCircle2,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -70,6 +72,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { prioritizeCustomer } from './actions';
 import { predictAuctionRisk, type PredictAuctionRiskOutput } from '@/ai/flows/auction-risk-predictor';
 import { Input } from '@/components/ui/input';
+import KanbanBoard from '@/components/KanbanBoard';
 
 
 const priorityIndonesianMap: Record<string, Customer['priority']> = {
@@ -91,7 +94,7 @@ const getUpcFromId = (id: string): Customer['upc'] => {
 
 
 // Enhanced Mock Data to represent different customer segments
-const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment'>[] = [
+const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment' | 'follow_up_status'>[] = [
   {
     id: '1178724010014909',
     name: 'Vycency Tacya Runtu',
@@ -140,6 +143,7 @@ const MOCK_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
   ...c,
   upc: getUpcFromId(c.id),
   segment: 'none',
+  follow_up_status: 'baru',
 }));
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
@@ -155,6 +159,7 @@ export default function DashboardPage() {
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
   const [notificationsSent, setNotificationsSent] = React.useState(0);
   const [isChatbotOpen, setIsChatbotOpen] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<'table' | 'kanban'>('table');
   
   const [isPredictingRisk, setIsPredictingRisk] = React.useState<string | null>(null);
   const [auctionRiskData, setAuctionRiskData] = React.useState<PredictAuctionRiskOutput | null>(null);
@@ -726,201 +731,220 @@ Terima Kasih`;
             <CardContent className="p-4">
                  <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
                      <div className="flex-grow"></div>
-                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
+                      <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                            <Button variant={viewMode === 'table' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('table')}>
+                                <List className="h-4 w-4" />
+                                <span className="ml-2 hidden sm:inline">Table</span>
+                            </Button>
+                            <Button variant={viewMode === 'kanban' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('kanban')}>
+                                <LayoutGrid className="h-4 w-4" />
+                                <span className="ml-2 hidden sm:inline">Kanban</span>
+                            </Button>
+                        </div>
+                        <Button onClick={handleAutoPrioritize} disabled={isPrioritizing} className="bg-accent hover:bg-accent/90 text-accent-foreground">
                             {isPrioritizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
                             Auto-Prioritize
                         </Button>
-                        <Button onClick={handleNotifySelected} className="w-full sm:w-auto" disabled={selectedCustomers.size === 0}>
-                            <Send className="mr-2 h-4 w-4" />
-                            Notify Selected ({selectedCustomers.size})
-                        </Button>
-                    </div>
-                </div>
-                 <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                    <div className="flex items-center gap-2 w-full md:w-auto">
-                        <Filter className="h-5 w-5 text-muted-foreground" />
-                        <h3 className="font-semibold text-lg">Filters</h3>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto md:ml-auto">
-                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <SelectTrigger className="w-full sm:w-[180px] bg-background">
-                            <SelectValue placeholder="Filter by Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Priorities</SelectItem>
-                            <SelectItem value="tinggi">
-                                <Badge variant="destructive">Tinggi</Badge>
-                            </SelectItem>
-                            <SelectItem value="sedang">
-                                <Badge variant="secondary" className="bg-accent/20 text-accent-foreground border-accent/50">Sedang</Badge>
-                            </SelectItem>
-                             <SelectItem value="rendah">
-                                <Badge variant="outline">Rendah</Badge>
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <Button
-                            variant={'outline'}
-                            className={cn(
-                            'w-full sm:w-[240px] justify-start text-left font-normal bg-background',
-                            !dateFilter && 'text-muted-foreground'
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateFilter ? format(dateFilter, 'PPP') : <span>Filter by due date</span>}
-                        </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={dateFilter}
-                            onSelect={(date) => {
-                                setDateFilter(date);
-                            }}
-                            initialFocus
-                        />
-                        </PopoverContent>
-                    </Popover>
-                    { (dateFilter || priorityFilter !== 'all') && 
-                        <Button variant="ghost" onClick={() => { setDateFilter(undefined); setPriorityFilter('all');}}>Clear</Button>
-                    }
-                    </div>
-                </div>
-                <div className="rounded-lg border">
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[40px]">
-                            <Checkbox 
-                              checked={selectedCustomers.size > 0 && selectedCustomers.size === filteredCustomers.length && filteredCustomers.length > 0}
-                              onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                              aria-label="Select all"
-                            />
-                          </TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>UPC</TableHead>
-                          <TableHead>Segment</TableHead>
-                          <TableHead className="hidden md:table-cell">Transaction</TableHead>
-                          <TableHead>Due Date</TableHead>
-                          <TableHead>Priority</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredCustomers.length === 0 ? (
-                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center">
-                                    No customers found.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredCustomers.map((customer) => (
-                            <TableRow 
-                                key={customer.id} 
-                                data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}
-                                ref={(el) => customerRowsRef.current[customer.id] = el}
-                                className="transition-all duration-300"
-                            >
-                                <TableCell>
-                                <Checkbox
-                                    checked={selectedCustomers.has(customer.id)}
-                                    onCheckedChange={(checked) => handleSelectCustomer(customer.id, !!checked)}
-                                    aria-label="Select customer"
-                                />
-                                </TableCell>
-                                <TableCell>
-                                <div className="font-medium">{customer.name}</div>
-                                <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
-                                <div className="text-sm text-muted-foreground">{customer.email}</div>
-                                </TableCell>
-                                <TableCell>{customer.upc}</TableCell>
-                                 <TableCell>
-                                    <Badge variant={segmentVariantMap[customer.segment] || 'outline'} className="capitalize">
-                                        {customer.segment === 'none' ? 'N/A' : customer.segment}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="hidden md:table-cell">
-                                    <div className="font-medium capitalize">{customer.transaction_type}</div>
-                                    <div className="text-sm text-muted-foreground">
-                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(customer.loan_value)}
-                                    </div>
-                                </TableCell>
-                                <TableCell>{format(new Date(customer.due_date), 'dd MMMM yyyy')}</TableCell>
-                                <TableCell>
-                                <Badge variant={priorityVariantMap[customer.priority]} className={cn('capitalize', customer.priority === 'sedang' && 'bg-accent/20 text-accent-foreground border-accent/50')}>
-                                    {customer.priority === 'none' ? 'N/A' : customer.priority}
-                                </Badge>
-                                </TableCell>
-                                <TableCell className="space-x-1">
-                                  <div className="flex items-center gap-1">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button size="sm" variant="outline"><ClipboardCopy className="h-4 w-4" /></Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'jatuh-tempo')}>Copy Pengingat</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'keterlambatan')}>Copy Keterlambatan</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'peringatan-lelang')}>Copy Peringatan Lelang</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                             <Button size="sm" variant="outline"><Bell className="h-4 w-4" /></Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => handleSendNotification(customer, 'jatuh-tempo')}>Kirim Pengingat</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleSendNotification(customer, 'keterlambatan')}>Kirim Keterlambatan</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleSendNotification(customer, 'peringatan-lelang')}>Kirim Peringatan Lelang</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button size="sm" disabled={isGeneratingVoicenote}>
-                                                {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'jatuh-tempo')}>Buat VN Pengingat</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'keterlambatan')}>Buat VN Keterlambatan</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button size="sm" variant="outline">
-                                                <CalendarPlus className="h-4 w-4" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <ReminderPopoverContent customerId={customer.id} customerName={customer.name} />
-                                    </Popover>
-                                    
-                                     <Button 
-                                        size="sm" 
-                                        variant="outline"
-                                        onClick={() => handlePredictRisk(customer)}
-                                        disabled={isPredictingRisk === customer.id || !isPast(new Date(customer.due_date))}
-                                        title={!isPast(new Date(customer.due_date)) ? "Hanya untuk nasabah yang sudah lewat jatuh tempo" : "Prediksi Risiko Lelang"}
-                                      >
-                                        {isPredictingRisk === customer.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                            </TableRow>
-                            ))
+                        {viewMode === 'table' && (
+                            <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0}>
+                                <Send className="mr-2 h-4 w-4" />
+                                Notify Selected ({selectedCustomers.size})
+                            </Button>
                         )}
-                    </TableBody>
-                    </Table>
+                    </div>
                 </div>
-                 {selectedCustomers.size > 0 && (
-                  <div className="text-xs text-muted-foreground mt-2">
-                    Browser may ask for permission to open multiple tabs. Please allow it.
-                  </div>
+
+                {viewMode === 'kanban' ? (
+                  <KanbanBoard customers={customers} setCustomers={setCustomers} />
+                ) : (
+                  <>
+                     <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+                        <div className="flex items-center gap-2 w-full md:w-auto">
+                            <Filter className="h-5 w-5 text-muted-foreground" />
+                            <h3 className="font-semibold text-lg">Filters</h3>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto md:ml-auto">
+                        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                            <SelectTrigger className="w-full sm:w-[180px] bg-background">
+                                <SelectValue placeholder="Filter by Priority" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Priorities</SelectItem>
+                                <SelectItem value="tinggi">
+                                    <Badge variant="destructive">Tinggi</Badge>
+                                </SelectItem>
+                                <SelectItem value="sedang">
+                                    <Badge variant="secondary" className="bg-accent/20 text-accent-foreground border-accent/50">Sedang</Badge>
+                                </SelectItem>
+                                 <SelectItem value="rendah">
+                                    <Badge variant="outline">Rendah</Badge>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                variant={'outline'}
+                                className={cn(
+                                'w-full sm:w-[240px] justify-start text-left font-normal bg-background',
+                                !dateFilter && 'text-muted-foreground'
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateFilter ? format(dateFilter, 'PPP') : <span>Filter by due date</span>}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={dateFilter}
+                                onSelect={(date) => {
+                                    setDateFilter(date);
+                                }}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        { (dateFilter || priorityFilter !== 'all') && 
+                            <Button variant="ghost" onClick={() => { setDateFilter(undefined); setPriorityFilter('all');}}>Clear</Button>
+                        }
+                        </div>
+                    </div>
+                    <div className="rounded-lg border">
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[40px]">
+                                <Checkbox 
+                                  checked={selectedCustomers.size > 0 && selectedCustomers.size === filteredCustomers.length && filteredCustomers.length > 0}
+                                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                                  aria-label="Select all"
+                                />
+                              </TableHead>
+                              <TableHead>Customer</TableHead>
+                              <TableHead>UPC</TableHead>
+                              <TableHead>Segment</TableHead>
+                              <TableHead className="hidden md:table-cell">Transaction</TableHead>
+                              <TableHead>Due Date</TableHead>
+                              <TableHead>Priority</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredCustomers.length === 0 ? (
+                                 <TableRow>
+                                    <TableCell colSpan={8} className="h-24 text-center">
+                                        No customers found.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredCustomers.map((customer) => (
+                                <TableRow 
+                                    key={customer.id} 
+                                    data-state={selectedCustomers.has(customer.id) ? 'selected' : ''}
+                                    ref={(el) => customerRowsRef.current[customer.id] = el}
+                                    className="transition-all duration-300"
+                                >
+                                    <TableCell>
+                                    <Checkbox
+                                        checked={selectedCustomers.has(customer.id)}
+                                        onCheckedChange={(checked) => handleSelectCustomer(customer.id, !!checked)}
+                                        aria-label="Select customer"
+                                    />
+                                    </TableCell>
+                                    <TableCell>
+                                    <div className="font-medium">{customer.name}</div>
+                                    <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
+                                    <div className="text-sm text-muted-foreground">{customer.email}</div>
+                                    </TableCell>
+                                    <TableCell>{customer.upc}</TableCell>
+                                     <TableCell>
+                                        <Badge variant={segmentVariantMap[customer.segment] || 'outline'} className="capitalize">
+                                            {customer.segment === 'none' ? 'N/A' : customer.segment}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <div className="font-medium capitalize">{customer.transaction_type}</div>
+                                        <div className="text-sm text-muted-foreground">
+                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(customer.loan_value)}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{format(new Date(customer.due_date), 'dd MMMM yyyy')}</TableCell>
+                                    <TableCell>
+                                    <Badge variant={priorityVariantMap[customer.priority]} className={cn('capitalize', customer.priority === 'sedang' && 'bg-accent/20 text-accent-foreground border-accent/50')}>
+                                        {customer.priority === 'none' ? 'N/A' : customer.priority}
+                                    </Badge>
+                                    </TableCell>
+                                    <TableCell className="space-x-1">
+                                      <div className="flex items-center gap-1">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button size="sm" variant="outline"><ClipboardCopy className="h-4 w-4" /></Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'jatuh-tempo')}>Copy Pengingat</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'keterlambatan')}>Copy Keterlambatan</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'peringatan-lelang')}>Copy Peringatan Lelang</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                 <Button size="sm" variant="outline"><Bell className="h-4 w-4" /></Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => handleSendNotification(customer, 'jatuh-tempo')}>Kirim Pengingat</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleSendNotification(customer, 'keterlambatan')}>Kirim Keterlambatan</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleSendNotification(customer, 'peringatan-lelang')}>Kirim Peringatan Lelang</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button size="sm" disabled={isGeneratingVoicenote}>
+                                                    {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'jatuh-tempo')}>Buat VN Pengingat</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'keterlambatan')}>Buat VN Keterlambatan</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button size="sm" variant="outline">
+                                                    <CalendarPlus className="h-4 w-4" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <ReminderPopoverContent customerId={customer.id} customerName={customer.name} />
+                                        </Popover>
+                                        
+                                         <Button 
+                                            size="sm" 
+                                            variant="outline"
+                                            onClick={() => handlePredictRisk(customer)}
+                                            disabled={isPredictingRisk === customer.id || !isPast(new Date(customer.due_date))}
+                                            title={!isPast(new Date(customer.due_date)) ? "Hanya untuk nasabah yang sudah lewat jatuh tempo" : "Prediksi Risiko Lelang"}
+                                          >
+                                            {isPredictingRisk === customer.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                        </Table>
+                    </div>
+                     {selectedCustomers.size > 0 && (
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Browser may ask for permission to open multiple tabs. Please allow it.
+                      </div>
+                    )}
+                </>
                 )}
             </CardContent>
         </Card>
