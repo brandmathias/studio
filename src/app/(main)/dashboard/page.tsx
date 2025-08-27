@@ -18,7 +18,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuEmpty,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -609,28 +608,26 @@ Terima Kasih`;
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Tugas Tindak Lanjut Hari Ini</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuEmpty>
-                 {todaysTasks.length === 0 ? (
-                  <p className="p-2 text-sm text-muted-foreground">Tidak ada tugas untuk hari ini.</p>
-                ) : (
-                  todaysTasks.map(task => (
-                    <DropdownMenuItem key={task.id} onSelect={(e) => e.preventDefault()} className="flex items-start gap-2">
-                        <Checkbox 
-                           checked={task.isCompleted} 
-                           onCheckedChange={() => handleToggleTask(task.id)}
-                           className="mt-1"
-                         />
-                        <div className="flex-1 cursor-pointer" onClick={() => handleNavigateToCustomer(task.customerId)}>
-                            <p className={cn("font-semibold", task.isCompleted && "line-through text-muted-foreground")}>{task.customerName}</p>
-                            <p className={cn("text-xs text-muted-foreground", task.isCompleted && "line-through")}>{task.note || 'Tidak ada catatan'}</p>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteTask(task.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                    </DropdownMenuItem>
-                  ))
-                )}
-              </DropdownMenuEmpty>
+               {todaysTasks.length === 0 ? (
+                <p className="p-2 text-sm text-muted-foreground">Tidak ada tugas untuk hari ini.</p>
+              ) : (
+                todaysTasks.map(task => (
+                  <DropdownMenuItem key={task.id} onSelect={(e) => e.preventDefault()} className="flex items-start gap-2">
+                      <Checkbox 
+                         checked={task.isCompleted} 
+                         onCheckedChange={() => handleToggleTask(task.id)}
+                         className="mt-1"
+                       />
+                      <div className="flex-1 cursor-pointer" onClick={() => handleNavigateToCustomer(task.customerId)}>
+                          <p className={cn("font-semibold", task.isCompleted && "line-through text-muted-foreground")}>{task.customerName}</p>
+                          <p className={cn("text-xs text-muted-foreground", task.isCompleted && "line-through")}>{task.note || 'Tidak ada catatan'}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteTask(task.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                  </DropdownMenuItem>
+                ))
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 
