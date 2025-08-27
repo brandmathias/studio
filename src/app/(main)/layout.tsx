@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -59,6 +59,16 @@ export default function MainLayout({
               >
                 <LayoutDashboard />
                 <span>Dashboard</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => router.push('/tasks')}
+                isActive={pathname.startsWith('/tasks')}
+                tooltip="Lacak Tugas"
+              >
+                <ClipboardList />
+                <span>Lacak Tugas</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>

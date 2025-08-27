@@ -41,3 +41,28 @@ export interface ScheduledTask {
   note: string;
   isCompleted: boolean;
 }
+
+// Types for the new Task Workflow Tracker
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  assignee?: {
+    name: string;
+    avatar?: string;
+  };
+  labels?: string[];
+  dueDate?: string;
+}
+
+export interface Column {
+  id: string;
+  title: string;
+  taskIds: string[];
+}
+
+export interface TaskBoardData {
+  tasks: Record<string, Task>;
+  columns: Record<string, Column>;
+  columnOrder: string[];
+}
