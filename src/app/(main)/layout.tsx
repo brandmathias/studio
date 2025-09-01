@@ -12,6 +12,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarInset,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp, ClipboardList, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
