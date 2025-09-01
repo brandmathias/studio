@@ -96,31 +96,35 @@ export default function XlsxBroadcastPage() {
             const workbook = XLSX.read(data, { type: 'binary' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            // Use { raw: true } to get raw numeric values instead of formatted strings
-            const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
+            // Use { raw: false } to get formatted strings, easier for inconsistent data types
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
             const customers: InstallmentCustomer[] = json
              .map((row: any, index) => ({
                 id: `row-${index}`, // Use row index as a stable key
                 nasabah: String(row[0] || ''),
                 produk: String(row[1] || ''),
-                pinjaman: Number(row[2]) || 0,
-                osl: Number(row[3]) || 0,
+                pinjaman: parseFloat(String(row[2]).replace(/[^0-9.-]+/g,"")) || 0,
+                osl: parseFloat(String(row[3]).replace(/[^0-9.-]+/g,"")) || 0,
                 kol: Number(row[4]) || 0,
                 hr_tung: Number(row[5]) || 0,
                 tenor: String(row[6] || 'N/A'),
-                angsuran: Number(row[7]) || 0,
-                kewajiban: Number(row[8]) || 0,
+                angsuran: parseFloat(String(row[7]).replace(/[^0-9.-]+/g,"")) || 0,
+                kewajiban: parseFloat(String(row[8]).replace(/[^0-9.-]+/g,"")) || 0,
                 pencairan: String(row[9] || ''),
                 kunjungan_terakhir: row[10] || 'N/A'
             }))
             .filter(c => {
                 const nasabahText = c.nasabah.trim();
                 const produkText = c.produk.trim();
-                // Filter out header rows, completely empty rows, and irrelevant data rows
+                // A valid row MUST have a product.
+                if (!produkText) return false;
+
+                // Filter out header rows that might be repeated in the file
                 const isHeaderRow = nasabahText.toLowerCase() === 'nasabah' || produkText.toLowerCase() === 'produk';
-                const isEmptyRow = !nasabahText && !produkText;
-                return !isHeaderRow && !isEmptyRow;
+                if (isHeaderRow) return false;
+
+                return true; // If it has a product and is not a header, it's valid data.
             });
 
             setImportedData(customers);
