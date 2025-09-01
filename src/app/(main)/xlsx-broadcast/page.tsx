@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -14,9 +15,18 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Send, Loader2 } from 'lucide-react';
+import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
 import type { InstallmentCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
+import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
+import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 const formatCurrency = (value: number | string | undefined) => {
     const num = Number(value);
@@ -32,6 +42,8 @@ const formatDate = (excelDate: number): string => {
     return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
+type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
+
 
 export default function XlsxBroadcastPage() {
   const { toast } = useToast();
@@ -39,6 +51,14 @@ export default function XlsxBroadcastPage() {
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const [isGeneratingVoicenote, setIsGeneratingVoicenote] = React.useState(false);
+  const [activeVoicenote, setActiveVoicenote] = React.useState<{
+    audioDataUri: string;
+    whatsappUrl: string;
+    customerName: string;
+  } | null>(null);
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -137,17 +157,101 @@ export default function XlsxBroadcastPage() {
       setSelectedCustomers(new Set());
     }
   };
+  
+    const getNotificationMessage = (customer: InstallmentCustomer, template: NotificationTemplate): string => {
+        const customerName = customer.nasabah.split('\n')[0];
+        const productName = customer.produk.split('\n')[0];
+        let messageBody = '';
 
-  const handleSendNotification = (customer: InstallmentCustomer) => {
-    const message = `Yth. Nasabah ${customer.nasabah.split('\n')[0]}, tagihan produk ${customer.produk.split('\n')[0]} Anda sebesar ${formatCurrency(customer.angsuran)} akan jatuh tempo. Mohon segera lakukan pembayaran. Terima kasih.`;
+        switch (template) {
+            case 'peringatan-lelang':
+                messageBody = `*PERINGATAN PEMUTUSAN KONTRAK (TERAKHIR)*
+
+Angsuran produk ${productName} Anda telah melewati jatuh tempo secara signifikan (${customer.hr_tung} hari).
+
+Untuk menghindari pemutusan kontrak dan tindakan lebih lanjut, segera lakukan pembayaran seluruh kewajiban Anda (${formatCurrency(customer.kewajiban)}) dalam waktu 2x24 jam. Abaikan pesan ini jika sudah melakukan pembayaran.`;
+                break;
+            case 'keterlambatan':
+                messageBody = `*Angsuran Anda Sudah Jatuh Tempo*
+
+Angsuran produk ${productName} Anda telah melewati tanggal jatuh tempo (${customer.hr_tung} hari).
+
+Akan dikenakan denda keterlambatan. Mohon segera lakukan pembayaran untuk menghindari denda yang lebih besar.`;
+                break;
+            case 'jatuh-tempo':
+            default:
+                messageBody = `*Angsuran Anda akan segera Jatuh Tempo*
+
+Angsuran produk ${productName} Anda sebesar *${formatCurrency(customer.angsuran)}* akan segera jatuh tempo.
+
+Segera lakukan pembayaran. Pembayaran bisa dilakukan secara online melalui aplikasi PEGADAIAN DIGITAL atau e-channel lainnya.`;
+                break;
+        }
+
+        return `Yth. Bpk/Ibu ${customerName.toLocaleUpperCase()}
+
+${messageBody}
+
+Terima Kasih`;
+    };
+
+  const handleCopyMessage = (customer: InstallmentCustomer, template: NotificationTemplate) => {
+    const message = getNotificationMessage(customer, template);
+    navigator.clipboard.writeText(message).then(() => {
+      toast({
+        title: 'Pesan Disalin',
+        description: `Pesan untuk ${customer.nasabah.split('\n')[0]} telah disalin ke clipboard.`,
+      });
+    }).catch(err => {
+      console.error('Failed to copy message: ', err);
+      toast({
+        title: 'Gagal Menyalin',
+        description: 'Tidak dapat menyalin pesan. Silakan coba lagi.',
+        variant: 'destructive',
+      });
+    });
+  };
+
+  const handleSendNotification = (customer: InstallmentCustomer, template: NotificationTemplate) => {
+    const message = getNotificationMessage(customer, template);
     const encodedMessage = encodeURIComponent(message);
     
-    // As there is no phone number, we use a placeholder for the demo.
-    // In a real scenario, this would come from customer data.
+    // Using a placeholder phone number as it's not available in the source file
     const placeholderPhoneNumber = '620000000000'; 
     const whatsappUrl = `https://wa.me/${placeholderPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+  };
+
+  const handleGenerateVoicenote = async (customer: InstallmentCustomer, template: NotificationTemplate) => {
+    setIsGeneratingVoicenote(true);
+    toast({
+        title: 'Membuat Pesan Suara...',
+        description: `AI sedang membuat pesan suara untuk ${customer.nasabah.split('\n')[0]}.`,
+    });
+    try {
+        const placeholderPhoneNumber = '620000000000'; 
+        const whatsappUrl = `https://wa.me/${placeholderPhoneNumber}`;
+
+        const message = getNotificationMessage(customer, template);
+        const { audioDataUri } = await generateCustomerVoicenote({ text: message });
+
+        setActiveVoicenote({
+            audioDataUri,
+            whatsappUrl,
+            customerName: customer.nasabah.split('\n')[0],
+        });
+
+    } catch (error) {
+        console.error('Voicenote generation failed:', error);
+        toast({
+            title: 'Gagal Membuat Pesan Suara',
+            description: 'Terjadi kesalahan saat membuat pesan suara. Silakan coba lagi.',
+            variant: 'destructive',
+        });
+    } finally {
+        setIsGeneratingVoicenote(false);
+    }
   };
 
   const handleNotifySelected = () => {
@@ -169,18 +273,27 @@ export default function XlsxBroadcastPage() {
     
     customersToNotify.forEach((customer, index) => {
       setTimeout(() => {
-        handleSendNotification(customer);
+        handleSendNotification(customer, 'jatuh-tempo');
       }, index * 200);
     });
     
-    // Deselect all after sending
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(cb => (cb as HTMLInputElement).checked = false);
     setSelectedCustomers(new Set());
   };
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        {activeVoicenote && (
+          <VoicenotePreviewDialog
+            isOpen={!!activeVoicenote}
+            onClose={() => setActiveVoicenote(null)}
+            audioDataUri={activeVoicenote.audioDataUri}
+            whatsappUrl={activeVoicenote.whatsappUrl}
+            customerName={activeVoicenote.customerName}
+            onConfirm={() => {
+                window.open(activeVoicenote.whatsappUrl, '_blank');
+            }}
+          />
+        )}
       <div className="flex items-center">
           <h1 className="text-2xl font-bold tracking-tight font-headline">XLSX Angsuran Broadcast</h1>
       </div>
@@ -238,19 +351,20 @@ export default function XlsxBroadcastPage() {
                   <TableHead>Kewajiban</TableHead>
                   <TableHead>Pencairan</TableHead>
                   <TableHead>Kunjungan Terakhir</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                     <TableRow>
-                        <TableCell colSpan={12} className="h-24 text-center">
+                        <TableCell colSpan={13} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">Memproses file XLSX...</p>
                         </TableCell>
                     </TableRow>
                 ) : importedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={12} className="h-24 text-center">
+                      <TableCell colSpan={13} className="h-24 text-center">
                           Tidak ada data. Klik "Impor XLSX" untuk memulai.
                       </TableCell>
                     </TableRow>
@@ -275,6 +389,42 @@ export default function XlsxBroadcastPage() {
                       <TableCell className="text-right">{formatCurrency(customer.kewajiban)}</TableCell>
                       <TableCell className="whitespace-pre-line">{customer.pencairan}</TableCell>
                       <TableCell>{customer.kunjungan_terakhir}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                           <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="outline"><ClipboardCopy className="h-4 w-4" /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'jatuh-tempo')}>Copy Pengingat</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'keterlambatan')}>Copy Keterlambatan</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'peringatan-lelang')}>Copy Peringatan Lelang</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                           <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="outline"><Bell className="h-4 w-4" /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => handleSendNotification(customer, 'jatuh-tempo')}>Kirim Pengingat</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSendNotification(customer, 'keterlambatan')}>Kirim Keterlambatan</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSendNotification(customer, 'peringatan-lelang')}>Kirim Peringatan Lelang</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" disabled={isGeneratingVoicenote}>
+                                        {isGeneratingVoicenote ? <Loader2 className="h-4 w-4 animate-spin"/> : <Mic className="h-4 w-4" />}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'jatuh-tempo')}>Buat VN Pengingat</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'keterlambatan')}>Buat VN Keterlambatan</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -291,3 +441,5 @@ export default function XlsxBroadcastPage() {
     </main>
   );
 }
+
+    
