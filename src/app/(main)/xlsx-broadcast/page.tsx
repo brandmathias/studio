@@ -38,6 +38,9 @@ const formatCurrency = (value: number | string | undefined) => {
 const formatDate = (value: string | number): string => {
     if (typeof value === 'number') {
         if (value > 0) {
+            // Excel dates are stored as the number of days since 1900-01-01.
+            // JavaScript's Date is based on milliseconds since 1970-01-01.
+            // The formula to convert is to subtract the Excel epoch offset and then convert days to milliseconds.
             const date = new Date((value - (25567 + 1)) * 86400 * 1000);
             return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
         }
@@ -93,9 +96,11 @@ export default function XlsxBroadcastPage() {
             const workbook = XLSX.read(data, { type: 'binary' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
+            // Use { raw: true } to get raw numeric values instead of formatted strings
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
 
-            const customers: InstallmentCustomer[] = json.map((row: any, index) => ({
+            const customers: InstallmentCustomer[] = json
+             .map((row: any, index) => ({
                 id: `row-${index}`, // Use row index as a stable key
                 nasabah: String(row[0] || ''),
                 produk: String(row[1] || ''),
@@ -103,16 +108,17 @@ export default function XlsxBroadcastPage() {
                 osl: Number(row[3]) || 0,
                 kol: Number(row[4]) || 0,
                 hr_tung: Number(row[5]) || 0,
-                tenor: String(row[6]) || 'N/A',
+                tenor: String(row[6] || 'N/A'),
                 angsuran: Number(row[7]) || 0,
                 kewajiban: Number(row[8]) || 0,
                 pencairan: String(row[9] || ''),
-                kunjungan_terakhir: String(row[10] || 'N/A')
-            })).filter(c => {
+                kunjungan_terakhir: row[10] || 'N/A'
+            }))
+            .filter(c => {
                 const nasabahText = c.nasabah.trim();
                 const produkText = c.produk.trim();
                 // Filter out header rows and completely empty rows
-                const isHeaderRow = nasabahText === 'Nasabah' || produkText === 'Produk';
+                const isHeaderRow = nasabahText.toLowerCase() === 'nasabah' || produkText.toLowerCase() === 'produk';
                 const isEmptyRow = !nasabahText && !produkText;
                 return !isHeaderRow && !isEmptyRow;
             });
@@ -170,14 +176,19 @@ export default function XlsxBroadcastPage() {
   
     const getNotificationMessage = (customer: InstallmentCustomer, template: NotificationTemplate): string => {
         // Clean up the nasabah string to extract name and ID.
-        const nasabahParts = customer.nasabah.split('\n');
-        const customerNameAndId = (nasabahParts[0] || '').replace(/\s+/g, ' ');
+        const customerNameAndId = customer.nasabah.replace(/\s+/g, ' ').trim();
         
         // Clean up produk string
         const productName = (customer.produk.split('\n')[0] || '').replace(/\s+-\s+-/, '').trim();
 
-        // Use 'pencairan' column for the branch name
-        const headerLine = `Nasabah ${customer.pencairan.toUpperCase()}`;
+        let headerLine = `Nasabah ${customer.pencairan.toUpperCase()}`;
+        const pencairanLower = customer.pencairan.toLowerCase();
+
+        if (pencairanLower.includes('wane')) {
+            headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
+        } else if (pencairanLower.includes('ranotana')) {
+            headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+        }
         
         let messageBody = '';
 
@@ -406,7 +417,7 @@ Terima Kasih`;
                       <TableCell className="text-center">{customer.tenor}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.angsuran)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.kewajiban)}</TableCell>
-                      <TableCell>{formatDate(customer.pencairan)}</TableCell>
+                      <TableCell>{customer.pencairan}</TableCell>
                       <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
