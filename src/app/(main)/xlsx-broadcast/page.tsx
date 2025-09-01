@@ -91,21 +91,26 @@ export default function XlsxBroadcastPage() {
             // The `raw: false` option is crucial for dates to be parsed correctly
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
-            // Skip header row (index 0)
+            // Skip header row (index 0) and filter out irrelevant rows
             const customers: InstallmentCustomer[] = json.slice(1).map((row: any, index) => ({
                 id: row[0] ? String(row[0]).split('\n')[1] || `row-${index}` : `row-${index}`, // Use second line of "Nasabah" as ID
-                nasabah: row[0] || 'N/A', // Kolom A
-                produk: row[1] || 'N/A', // Kolom B
-                pinjaman: Number(row[2]) || 0, // Kolom C
-                osl: Number(row[3]) || 0, // Kolom D
-                kol: Number(row[4]) || 0, // Kolom E
-                hr_tung: Number(row[5]) || 0, // Kolom F
-                tenor: String(row[6]) || 'N/A', // Kolom G
-                angsuran: Number(row[7]) || 0, // Kolom H
-                kewajiban: Number(row[8]) || 0, // Kolom I
-                pencairan: row[9] || 'N/A', // Kolom J
-                kunjungan_terakhir: row[10] || 'N/A' // Kolom K
-            })).filter(c => c.nasabah !== 'N/A' && c.nasabah.trim() !== ''); // Basic validation
+                nasabah: row[0] || '',
+                produk: row[1] || '',
+                pinjaman: Number(row[2]) || 0,
+                osl: Number(row[3]) || 0,
+                kol: Number(row[4]) || 0,
+                hr_tung: Number(row[5]) || 0,
+                tenor: String(row[6]) || 'N/A',
+                angsuran: Number(row[7]) || 0,
+                kewajiban: Number(row[8]) || 0,
+                pencairan: row[9] || 'N/A',
+                kunjungan_terakhir: row[10] || 'N/A'
+            })).filter(c => {
+                // Filter out empty rows and header-like rows that might appear in the data
+                const isHeaderRow = c.nasabah.trim() === 'Nasabah' || c.produk.trim() === 'Produk';
+                const isEmptyRow = !c.nasabah.trim() && !c.produk.trim();
+                return !isHeaderRow && !isEmptyRow;
+            });
 
             setImportedData(customers);
              toast({
@@ -441,5 +446,7 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
 
     
