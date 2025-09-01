@@ -117,7 +117,7 @@ export default function XlsxBroadcastPage() {
             .filter(c => {
                 const nasabahText = c.nasabah.trim();
                 const produkText = c.produk.trim();
-                // Filter out header rows and completely empty rows
+                // Filter out header rows, completely empty rows, and irrelevant data rows
                 const isHeaderRow = nasabahText.toLowerCase() === 'nasabah' || produkText.toLowerCase() === 'produk';
                 const isEmptyRow = !nasabahText && !produkText;
                 return !isHeaderRow && !isEmptyRow;
