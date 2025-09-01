@@ -12,9 +12,8 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarInset,
-  SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp, ClipboardList } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp, ClipboardList, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -79,6 +78,16 @@ export default function MainLayout({
               >
                 <FileUp />
                 <span>PDF Broadcast</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => router.push('/xlsx-broadcast')}
+                isActive={pathname.startsWith('/xlsx-broadcast')}
+                tooltip="XLSX Broadcast"
+              >
+                <FileSpreadsheet />
+                <span>XLSX Broadcast</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>

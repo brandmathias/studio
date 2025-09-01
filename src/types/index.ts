@@ -66,3 +66,18 @@ export interface TaskBoardData {
   columns: Record<string, Column>;
   columnOrder: string[];
 }
+
+export interface InstallmentCustomer {
+  id: string;
+  nasabah: string;
+  produk: string;
+  pinjaman: number;
+  osl: number;
+  kol: number;
+  hr_tung: number;
+  tenor: string;
+  angsuran: number;
+  kewajiban: number;
+  pencairan: string;
+  kunjungan_terakhir: string;
+}
