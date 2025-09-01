@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import * as XLSX from 'xlsx';
 import {
   Table,
   TableBody,
@@ -16,51 +17,39 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2 } from 'lucide-react';
 import type { BroadcastCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
-import Papa from 'papaparse';
 
-
-const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    // Check if the date string is in YYYY-MM-DD format, if so convert it.
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
+// Helper function to parse Excel serial date to a readable string format
+const formatDate = (serial: number | string) => {
+    if (typeof serial === 'string') {
+        // If it's already a string, return it as is, assuming it's pre-formatted.
+        return serial;
     }
-    // Handle DD/MM/YYYY format
-     if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-        const [day, month, year] = dateString.split('/');
-        return new Date(`${year}-${month}-${day}`).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
-    }
-    // Assume it's already in a readable format if not YYYY-MM-DD
-    return dateString;
+    if (typeof serial !== 'number' || serial <= 0) return 'N/A';
+    // Excel dates are the number of days since 1900-01-01, but there's a bug where it thinks 1900 is a leap year.
+    // JavaScript dates are based on milliseconds since 1970-01-01.
+    const date = new Date((serial - 25569) * 86400 * 1000);
+    return date.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+    });
 };
+
 
 const formatCurrency = (value: number) => {
     if (isNaN(value)) return 'N/A';
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
-// Helper function to parse DD/MM/YYYY into a valid Date object
+// Helper function to parse DD-MM-YYYY string from excel into a valid Date object
 const parseDate = (dateString: string): Date | null => {
-    if (!dateString) return null;
-    const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-    if (!parts) {
-        // Try parsing directly if it's not in DD/MM/YYYY
-        const d = new Date(dateString);
-        return isNaN(d.getTime()) ? null : d;
-    }
+    if (!dateString || typeof dateString !== 'string') return null;
+    const parts = dateString.match(/(\d{2})-(\d{2})-(\d{4})/);
+    if (!parts) return new Date(dateString); // Try parsing directly for other formats
     // parts[1] = DD, parts[2] = MM, parts[3] = YYYY
     const d = new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1]));
     return isNaN(d.getTime()) ? null : d;
 }
-
 
 export default function ExperimentsPage() {
   const { toast } = useToast();
@@ -71,39 +60,55 @@ export default function ExperimentsPage() {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
+    if (!file) return;
+
+     if (!file.name.endsWith('.xlsx')) {
+        toast({
+            title: 'Invalid File Type',
+            description: 'Please upload an .xlsx file.',
+            variant: 'destructive',
+        });
+        return;
     }
 
     setIsLoading(true);
     setImportedData([]);
     setSelectedCustomers(new Set());
     toast({
-        title: 'Processing CSV...',
+        title: 'Processing XLSX...',
         description: 'Reading data from the file.',
     });
 
-    Papa.parse(file, {
-        header: false, // We will map by position, not by header name
-        skipEmptyLines: true,
-        complete: (results) => {
-            // Data is now an array of arrays. We skip the first row (header).
-            const dataRows = (results.data as string[][]).slice(1);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = e.target?.result;
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-            const broadcastCustomers: BroadcastCustomer[] = dataRows.map(row => ({
-                sbg_number: row[0] || '',
-                rubrik: row[1] || '',
-                name: row[2] || '',
-                phone_number: row[3] || '',
-                credit_date: row[4] || '',
-                due_date: row[5] || '',
-                loan_value: parseFloat(row[6]) || 0,
-                barang_jaminan: row[7] || '',
-                taksiran: parseFloat(row[8]) || 0,
-                sewa_modal: parseFloat(row[9]) || 0,
-                alamat: row[10] || '',
-                status: row[11] || '',
-            })).filter(c => c.sbg_number && c.name); // Basic validation
+            const broadcastCustomers: BroadcastCustomer[] = json.map((row) => {
+                 // Dates might be read as Date objects or strings, so we need to handle both
+                const creditDate = row['Tgl Kredit'] ? new Date(row['Tgl Kredit']).toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '';
+                const dueDate = row['Tgl Jatuh Tempo'] ? new Date(row['Tgl Jatuh Tempo']).toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '';
+
+                return {
+                    sbg_number: String(row['No. SBG Siscadu'] || ''),
+                    rubrik: String(row['Rubrik'] || ''),
+                    name: String(row['Nasabah'] || ''),
+                    phone_number: String(row['Telp/HP'] || ''),
+                    credit_date: creditDate,
+                    due_date: dueDate,
+                    loan_value: Number(row['Uang Pinjaman'] || 0),
+                    barang_jaminan: String(row['Barang Jaminan'] || ''),
+                    taksiran: Number(row['Taksiran'] || 0),
+                    sewa_modal: Number(row['SM'] || 0),
+                    alamat: '', // Alamat is not in a separate column in the example
+                    status: '',   // Status is not in the example
+                };
+            }).filter(c => c.sbg_number && c.name); // Basic validation
 
             setImportedData(broadcastCustomers);
             setIsLoading(false);
@@ -111,17 +116,17 @@ export default function ExperimentsPage() {
                 title: 'Import Complete',
                 description: `${broadcastCustomers.length} records have been loaded.`,
             });
-        },
-        error: (error: any) => {
+        } catch(error) {
             setIsLoading(false);
             toast({
-                title: 'Error Parsing CSV',
-                description: error.message,
+                title: 'Error Parsing XLSX',
+                description: 'Failed to process the XLSX file. Please ensure it is not corrupted.',
                 variant: 'destructive',
             });
-            console.error("CSV parsing error:", error);
+            console.error("XLSX parsing error:", error);
         }
-    });
+    };
+    reader.readAsArrayBuffer(file);
 
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -213,27 +218,27 @@ Terima Kasih`;
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="flex items-center">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">CSV Broadcast Experiment</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-headline">XLSX Broadcast Experiment</h1>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>CSV Broadcast Panel</CardTitle>
+          <CardTitle>XLSX Broadcast Panel</CardTitle>
           <CardDescription>
-            Import customer data from a CSV file to send bulk notifications. The column order in the file must match the table order below.
+            Import customer data from an XLSX file to send bulk notifications. Column names in the file should match the headers below.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
             <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-              {isLoading ? 'Processing...' : 'Import CSV'}
+              {isLoading ? 'Processing...' : 'Import XLSX'}
             </Button>
             <Input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
-                accept=".csv"
+                accept=".xlsx"
             />
             <div className="flex-grow"></div>
             <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0 || isLoading}>
@@ -262,22 +267,20 @@ Terima Kasih`;
                   <TableHead>UP (Uang Pinjaman)</TableHead>
                   <TableHead>SM (Sewa Modal)</TableHead>
                   <TableHead>Telp/HP</TableHead>
-                  <TableHead>Alamat</TableHead>
-                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                     <TableRow>
-                        <TableCell colSpan={12} className="h-24 text-center">
+                        <TableCell colSpan={10} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-                            <p className="mt-2 text-muted-foreground">Processing CSV file...</p>
+                            <p className="mt-2 text-muted-foreground">Processing XLSX file...</p>
                         </TableCell>
                     </TableRow>
                 ) : importedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={12} className="h-24 text-center">
-                          No data imported. Click "Import CSV" to begin.
+                      <TableCell colSpan={10} className="h-24 text-center">
+                          No data imported. Click "Import XLSX" to begin.
                       </TableCell>
                     </TableRow>
                 ) : (
@@ -294,16 +297,14 @@ Terima Kasih`;
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>{customer.rubrik}</TableCell>
                       <TableCell>
-                        <div>{formatDate(customer.credit_date)}</div>
-                        <div className='font-bold'>{formatDate(customer.due_date)}</div>
+                        <div>{customer.credit_date}</div>
+                        <div className='font-bold'>{customer.due_date}</div>
                       </TableCell>
                       <TableCell>{customer.barang_jaminan}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.loan_value)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
                       <TableCell>{customer.phone_number}</TableCell>
-                      <TableCell>{customer.alamat}</TableCell>
-                      <TableCell>{customer.status}</TableCell>
                     </TableRow>
                   ))
                 )}
