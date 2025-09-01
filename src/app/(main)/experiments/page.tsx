@@ -19,20 +19,14 @@ import type { BroadcastCustomer } from '@/types';
 import { Input } from '@/components/ui/input';
 
 // Helper function to parse Excel serial date to a readable string format
-const formatDate = (serial: number | string) => {
-    if (typeof serial === 'string') {
-        // If it's already a string, return it as is, assuming it's pre-formatted.
-        return serial;
-    }
+const formatDateFromSerial = (serial: number): string => {
     if (typeof serial !== 'number' || serial <= 0) return 'N/A';
-    // Excel dates are the number of days since 1900-01-01, but there's a bug where it thinks 1900 is a leap year.
-    // JavaScript dates are based on milliseconds since 1970-01-01.
     const date = new Date((serial - 25569) * 86400 * 1000);
     return date.toLocaleDateString('id-ID', {
         day: '2-digit',
-        month: 'long',
+        month: '2-digit',
         year: 'numeric'
-    });
+    }).replace(/\//g, '-');
 };
 
 
@@ -83,39 +77,59 @@ export default function ExperimentsPage() {
     reader.onload = (e) => {
         try {
             const data = e.target?.result;
-            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            const workbook = XLSX.read(data, { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             
-            const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+            // Use header: 1 to get an array of arrays, and raw: false to get formatted strings
+            const rows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
-            const broadcastCustomers: BroadcastCustomer[] = json.map((row) => {
-                 // Dates might be read as Date objects or strings, so we need to handle both
-                const creditDate = row['Tgl Kredit'] ? new Date(row['Tgl Kredit']).toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '';
-                const dueDate = row['Tgl Jatuh Tempo'] ? new Date(row['Tgl Jatuh Tempo']).toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '';
+            const broadcastCustomers: BroadcastCustomer[] = rows
+                .map((row, index) => {
+                    // Skip header rows or rows that don't seem to be data
+                    if (index === 0 || !row[1]) return null;
 
-                return {
-                    sbg_number: String(row['No. SBG Siscadu'] || ''),
-                    rubrik: String(row['Rubrik'] || ''),
-                    name: String(row['Nasabah'] || ''),
-                    phone_number: String(row['Telp/HP'] || ''),
-                    credit_date: creditDate,
-                    due_date: dueDate,
-                    loan_value: Number(row['Uang Pinjaman'] || 0),
-                    barang_jaminan: String(row['Barang Jaminan'] || ''),
-                    taksiran: Number(row['Taksiran'] || 0),
-                    sewa_modal: Number(row['SM'] || 0),
-                    alamat: '', // Alamat is not in a separate column in the example
-                    status: '',   // Status is not in the example
-                };
-            }).filter(c => c.sbg_number && c.name); // Basic validation
+                    // Address might be in the next row, let's check
+                    const nextRow = rows[index + 1];
+                    let nasabahName = String(row[3] || '');
+                    let alamat = '';
+                    // If the next row doesn't have a SBG number but the current one does, assume it's part of the address
+                    if (nextRow && !nextRow[1] && nextRow[3]) {
+                        alamat = String(nextRow[3] || '');
+                    }
+
+                    return {
+                        sbg_number: String(row[1] || ''),
+                        rubrik: String(row[2] || ''),
+                        name: nasabahName,
+                        phone_number: String(row[6] || ''),
+                        credit_date: String(row[7] || ''),
+                        due_date: String(row[8] || ''),
+                        loan_value: Number(String(row[11] || '0').replace(/[^0-9]/g, '')),
+                        barang_jaminan: String(row[9] || ''),
+                        taksiran: Number(String(row[10] || '0').replace(/[^0-9]/g, '')),
+                        sewa_modal: Number(String(row[12] || '0').replace(/[^0-9]/g, '')),
+                        alamat: alamat,
+                        status: 'Aktif', // Default status
+                    };
+                })
+                .filter((c): c is BroadcastCustomer => c !== null && !!c.sbg_number && !!c.name);
+
 
             setImportedData(broadcastCustomers);
             setIsLoading(false);
-            toast({
-                title: 'Import Complete',
-                description: `${broadcastCustomers.length} records have been loaded.`,
-            });
+            if (broadcastCustomers.length > 0) {
+                 toast({
+                    title: 'Import Complete',
+                    description: `${broadcastCustomers.length} records have been loaded.`,
+                });
+            } else {
+                 toast({
+                    title: 'No Data Loaded',
+                    description: 'Could not find valid customer data. Please check the file format.',
+                    variant: 'destructive',
+                });
+            }
         } catch(error) {
             setIsLoading(false);
             toast({
@@ -156,19 +170,18 @@ export default function ExperimentsPage() {
     const dueDateObj = parseDate(customer.due_date);
     if (!dueDateObj) {
       console.error("Invalid due date for customer:", customer.name);
+      toast({ title: 'Invalid Date', description: `Due date for ${customer.name} is invalid.`, variant: 'destructive'});
       return;
     }
 
     const dueDate = dueDateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}).toLocaleUpperCase();
-    const headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+    const headerLine = 'Nasabah PEGADAIAN'; // Generic header for this experiment
     const message = `${headerLine}
 *Yth. Bpk/Ibu ${customer.name.toLocaleUpperCase()}*
 
-*Gadaian ${customer.sbg_number} (${customer.barang_jaminan}) Sudah JATUH TEMPO tanggal ${dueDate}*
+*Gadaian ${customer.sbg_number} (${customer.barang_jaminan}) akan JATUH TEMPO tanggal ${dueDate}*
 
-Segera lakukan : pembayaran bunga/ perpanjangan/cek TAMBAH PINJAMAN bawa surat gadai+ktp+atm BRI+Handphone
-
-Pembayaran bisa dilakukan secara online melalui echannel pegadaian atau aplikasi PEGADAIAN DIGITAL
+Segera lakukan pembayaran bunga/perpanjangan. Pembayaran bisa dilakukan secara online melalui aplikasi PEGADAIAN DIGITAL atau e-channel lainnya.
 
 Terima Kasih`;
     const encodedMessage = encodeURIComponent(message);
@@ -224,7 +237,7 @@ Terima Kasih`;
         <CardHeader>
           <CardTitle>XLSX Broadcast Panel</CardTitle>
           <CardDescription>
-            Import customer data from an XLSX file to send bulk notifications. Column names in the file should match the headers below.
+            Import customer data from an XLSX file to send bulk notifications and create calendar events.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -260,26 +273,23 @@ Terima Kasih`;
                   </TableHead>
                   <TableHead>No. SBG</TableHead>
                   <TableHead>Nasabah</TableHead>
-                  <TableHead>Rubrik</TableHead>
-                  <TableHead>Tgl. Kredit & Jth Tempo</TableHead>
-                  <TableHead>Barang Jaminan</TableHead>
-                  <TableHead>Taksiran</TableHead>
-                  <TableHead>UP (Uang Pinjaman)</TableHead>
-                  <TableHead>SM (Sewa Modal)</TableHead>
                   <TableHead>Telp/HP</TableHead>
+                  <TableHead>Jatuh Tempo</TableHead>
+                  <TableHead>Barang Jaminan</TableHead>
+                  <TableHead>Uang Pinjaman</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                     <TableRow>
-                        <TableCell colSpan={10} className="h-24 text-center">
+                        <TableCell colSpan={7} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">Processing XLSX file...</p>
                         </TableCell>
                     </TableRow>
                 ) : importedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="h-24 text-center">
+                      <TableCell colSpan={7} className="h-24 text-center">
                           No data imported. Click "Import XLSX" to begin.
                       </TableCell>
                     </TableRow>
@@ -294,17 +304,14 @@ Terima Kasih`;
                         />
                       </TableCell>
                       <TableCell className="font-mono">{customer.sbg_number}</TableCell>
-                      <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell>{customer.rubrik}</TableCell>
-                      <TableCell>
-                        <div>{customer.credit_date}</div>
-                        <div className='font-bold'>{customer.due_date}</div>
+                      <TableCell className="font-medium">
+                        <div>{customer.name}</div>
+                        {customer.alamat && <div className='text-xs text-muted-foreground'>{customer.alamat}</div>}
                       </TableCell>
-                      <TableCell>{customer.barang_jaminan}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(customer.loan_value)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
                       <TableCell>{customer.phone_number}</TableCell>
+                      <TableCell className='font-bold'>{customer.due_date}</TableCell>
+                      <TableCell>{customer.barang_jaminan}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.loan_value)}</TableCell>
                     </TableRow>
                   ))
                 )}
