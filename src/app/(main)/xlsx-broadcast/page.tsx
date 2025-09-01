@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -46,6 +47,18 @@ const formatDate = (value: string | number): string => {
     }
     // If it's already a string, return it as is.
     return String(value);
+};
+
+const getUpcFromId = (id: string): 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A' => {
+  if (!id) return 'N/A';
+  const prefix = id.substring(0, 5);
+  if (prefix === '11787') {
+    return 'Pegadaian Wanea';
+  }
+  if (prefix === '11793') {
+    return 'Pegadaian Ranotana';
+  }
+  return 'N/A';
 };
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
@@ -98,24 +111,30 @@ export default function XlsxBroadcastPage() {
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
 
             // Skip header row (index 0) and map the data
-            const customers: InstallmentCustomer[] = json.slice(1).map((row: any, index) => ({
-                id: row[0] ? String(row[0]).split('\n')[1] || `row-${index}` : `row-${index}`, // Use second line of "Nasabah" as ID
-                nasabah: row[0] || '',
-                produk: row[1] || '',
-                pinjaman: Number(row[2]) || 0,
-                osl: Number(row[3]) || 0,
-                kol: Number(row[4]) || 0,
-                hr_tung: Number(row[5]) || 0,
-                tenor: String(row[6]) || 'N/A',
-                angsuran: Number(row[7]) || 0,
-                kewajiban: Number(row[8]) || 0,
-                pencairan: row[9] || 'N/A',
-                kunjungan_terakhir: row[10] || 'N/A'
-            })).filter(c => {
-                // Filter out empty rows and header-like rows that might appear in the data
-                const isHeaderRow = String(c.nasabah).trim() === 'Nasabah' || String(c.produk).trim() === 'Produk';
-                const isEmptyRow = !String(c.nasabah).trim() && !String(c.produk).trim();
-                return !isHeaderRow && !isEmptyRow;
+            const customers: InstallmentCustomer[] = json.slice(1).map((row: any, index) => {
+                const nasabahCell = String(row[0] || '');
+                const id = nasabahCell.split('\n')[1] || ''; // Extract ID from second line
+                return {
+                    id: id,
+                    nasabah: nasabahCell,
+                    produk: row[1] || '',
+                    pinjaman: Number(row[2]) || 0,
+                    osl: Number(row[3]) || 0,
+                    kol: Number(row[4]) || 0,
+                    hr_tung: Number(row[5]) || 0,
+                    tenor: String(row[6]) || 'N/A',
+                    angsuran: Number(row[7]) || 0,
+                    kewajiban: Number(row[8]) || 0,
+                    pencairan: row[9] || 'N/A',
+                    kunjungan_terakhir: row[10] || 'N/A'
+                }
+            }).filter(c => {
+                const nasabahText = String(c.nasabah).trim();
+                const produkText = String(c.produk).trim();
+                // Filter out header-like rows and rows without a valid ID
+                const isHeaderRow = nasabahText === 'Nasabah' || produkText === 'Produk';
+                const hasValidId = !!c.id;
+                return !isHeaderRow && hasValidId;
             });
 
             setImportedData(customers);
@@ -173,6 +192,16 @@ export default function XlsxBroadcastPage() {
         const customerName = customer.nasabah.split('\n')[0];
         const productName = customer.produk.split('\n')[0];
         let messageBody = '';
+        const upc = getUpcFromId(customer.id);
+        let headerLine = '';
+
+        if (upc === 'Pegadaian Wanea') {
+            headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
+        } else if (upc === 'Pegadaian Ranotana') {
+            headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
+        } else {
+            headerLine = `Nasabah PEGADAIAN`;
+        }
 
         switch (template) {
             case 'peringatan-lelang':
@@ -199,7 +228,8 @@ Segera lakukan pembayaran. Pembayaran bisa dilakukan secara online melalui aplik
                 break;
         }
 
-        return `Yth. Bpk/Ibu ${customerName.toLocaleUpperCase()}
+        return `${headerLine}
+*Yth. Bpk/Ibu ${customerName.toLocaleUpperCase()}*
 
 ${messageBody}
 
@@ -452,3 +482,5 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
