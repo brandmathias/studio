@@ -37,29 +37,15 @@ const formatCurrency = (value: number | string | undefined) => {
 
 const formatDate = (value: string | number): string => {
     if (typeof value === 'number') {
-        // Excel stores dates as number of days since 1900-01-01.
-        // The conversion needs to account for Excel's leap year bug (1900).
         if (value > 0) {
             const date = new Date((value - (25567 + 1)) * 86400 * 1000);
             return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
         }
         return 'N/A';
     }
-    // If it's already a string, return it as is.
     return String(value);
 };
 
-const getUpcFromId = (id: string): 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A' => {
-  if (!id) return 'N/A';
-  const prefix = id.substring(0, 5);
-  if (prefix === '11787') {
-    return 'Pegadaian Wanea';
-  }
-  if (prefix === '11793') {
-    return 'Pegadaian Ranotana';
-  }
-  return 'N/A';
-};
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 
@@ -109,26 +95,23 @@ export default function XlsxBroadcastPage() {
             const worksheet = workbook.Sheets[sheetName];
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
 
-            const customers: InstallmentCustomer[] = json.slice(1).map((row: any, index) => {
-                const nasabahCell = String(row[0] || '');
-                const customerId = nasabahCell.split('\n')[1] || `row-${index}`; // Robust ID generation
-                return {
-                    id: customerId,
-                    nasabah: nasabahCell,
-                    produk: row[1] || '',
-                    pinjaman: Number(row[2]) || 0,
-                    osl: Number(row[3]) || 0,
-                    kol: Number(row[4]) || 0,
-                    hr_tung: Number(row[5]) || 0,
-                    tenor: String(row[6]) || 'N/A',
-                    angsuran: Number(row[7]) || 0,
-                    kewajiban: Number(row[8]) || 0,
-                    pencairan: row[9] || 'N/A',
-                    kunjungan_terakhir: row[10] || 'N/A'
-                }
-            }).filter(c => {
-                const nasabahText = String(c.nasabah).trim();
-                const produkText = String(c.produk).trim();
+            const customers: InstallmentCustomer[] = json.map((row: any, index) => ({
+                id: `row-${index}`, // Use row index as a stable key
+                nasabah: String(row[0] || ''),
+                produk: String(row[1] || ''),
+                pinjaman: Number(row[2]) || 0,
+                osl: Number(row[3]) || 0,
+                kol: Number(row[4]) || 0,
+                hr_tung: Number(row[5]) || 0,
+                tenor: String(row[6]) || 'N/A',
+                angsuran: Number(row[7]) || 0,
+                kewajiban: Number(row[8]) || 0,
+                pencairan: String(row[9] || ''),
+                kunjungan_terakhir: String(row[10] || 'N/A')
+            })).filter(c => {
+                const nasabahText = c.nasabah.trim();
+                const produkText = c.produk.trim();
+                // Filter out header rows and completely empty rows
                 const isHeaderRow = nasabahText === 'Nasabah' || produkText === 'Produk';
                 const isEmptyRow = !nasabahText && !produkText;
                 return !isHeaderRow && !isEmptyRow;
@@ -186,19 +169,17 @@ export default function XlsxBroadcastPage() {
   };
   
     const getNotificationMessage = (customer: InstallmentCustomer, template: NotificationTemplate): string => {
-        const customerName = customer.nasabah.split('\n')[0];
-        const productName = customer.produk.split('\n')[0];
-        let messageBody = '';
-        const upc = getUpcFromId(customer.id); // Use the customer ID which contains the branch code
-        let headerLine = '';
+        // Clean up the nasabah string to extract name and ID.
+        const nasabahParts = customer.nasabah.split('\n');
+        const customerNameAndId = (nasabahParts[0] || '').replace(/\s+/g, ' ');
+        
+        // Clean up produk string
+        const productName = (customer.produk.split('\n')[0] || '').replace(/\s+-\s+-/, '').trim();
 
-        if (upc === 'Pegadaian Wanea') {
-            headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
-        } else if (upc === 'Pegadaian Ranotana') {
-            headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
-        } else {
-            headerLine = `Nasabah PEGADAIAN`;
-        }
+        // Use 'pencairan' column for the branch name
+        const headerLine = `Nasabah ${customer.pencairan.toUpperCase()}`;
+        
+        let messageBody = '';
 
         switch (template) {
             case 'peringatan-lelang':
@@ -226,7 +207,7 @@ Segera lakukan pembayaran. Pembayaran bisa dilakukan secara online melalui aplik
         }
 
         return `${headerLine}
-*Yth. Bpk/Ibu ${customerName.toLocaleUpperCase()}*
+*Yth. Bpk/Ibu ${customerNameAndId.toLocaleUpperCase()}*
 
 ${messageBody}
 
@@ -479,7 +460,3 @@ Terima Kasih`;
     </main>
   );
 }
-
-    
-
-    
