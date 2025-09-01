@@ -75,20 +75,20 @@ export default function MainLayout({
               <SidebarMenuButton
                 onClick={() => router.push('/pdf-broadcast')}
                 isActive={pathname.startsWith('/pdf-broadcast')}
-                tooltip="PDF Broadcast"
+                tooltip="Gadaian Broadcast"
               >
                 <FileUp />
-                <span>PDF Broadcast</span>
+                <span>Gadaian Broadcast</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => router.push('/xlsx-broadcast')}
                 isActive={pathname.startsWith('/xlsx-broadcast')}
-                tooltip="XLSX Broadcast"
+                tooltip="Angsuran Broadcast"
               >
                 <FileSpreadsheet />
-                <span>XLSX Broadcast</span>
+                <span>Angsuran Broadcast</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>

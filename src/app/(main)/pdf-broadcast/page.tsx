@@ -313,13 +313,13 @@ Terima Kasih`;
           />
         )}
       <div className="flex items-center">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">PDF Broadcast</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-headline">Gadaian Broadcast</h1>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>PDF Broadcast Panel</CardTitle>
+          <CardTitle>Panel Gadaian Broadcast</CardTitle>
           <CardDescription>
-            Import customer data directly from a PDF file to send bulk notifications.
+            Impor data nasabah langsung dari file PDF untuk mengirim notifikasi massal.
           </CardDescription>
         </CardHeader>
         <CardContent>

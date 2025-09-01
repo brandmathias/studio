@@ -329,11 +329,11 @@ Terima Kasih`;
           />
         )}
       <div className="flex items-center">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">XLSX Angsuran Broadcast</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-headline">Angsuran Broadcast</h1>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Panel Broadcast XLSX</CardTitle>
+          <CardTitle>Panel Angsuran Broadcast</CardTitle>
           <CardDescription>
             Impor data nasabah dari file .xlsx untuk mengirim notifikasi jatuh tempo angsuran. Pastikan urutan kolom di file Anda sesuai dengan tabel di bawah.
           </CardDescription>
