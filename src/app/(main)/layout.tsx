@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -5,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   Sidebar,
   SidebarHeader,
-  SidebarTrigger,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, FileUp, ClipboardList, FileSpreadsheet } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export default function MainLayout({
   children,
@@ -39,6 +40,8 @@ export default function MainLayout({
     localStorage.removeItem('isLoggedIn');
     router.push('/login');
   };
+  
+  const isJatuhTempoActive = pathname.startsWith('/pdf-broadcast') || pathname.startsWith('/xlsx-broadcast');
 
   return (
     <SidebarProvider>
@@ -71,26 +74,37 @@ export default function MainLayout({
                 <span>Lacak Tugas</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            {/* Jatuh Tempo Broadcast Dropdown */}
              <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => router.push('/pdf-broadcast')}
-                isActive={pathname.startsWith('/pdf-broadcast')}
-                tooltip="Gadaian Broadcast"
-              >
-                <FileUp />
-                <span>Gadaian Broadcast</span>
-              </SidebarMenuButton>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                     <button
+                      className={cn(
+                        'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 h-8',
+                         isJatuhTempoActive && 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+                      )}
+                    >
+                      <FileUp />
+                      <span>Jatuh Tempo Broadcast</span>
+                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="start" side="right" sideOffset={10}>
+                    <DropdownMenuLabel>Pilih Jenis Broadcast</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/pdf-broadcast')}>
+                      <FileUp className="mr-2 h-4 w-4" />
+                      <span>Gadaian Broadcast</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/xlsx-broadcast')}>
+                       <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      <span>Angsuran Broadcast</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => router.push('/xlsx-broadcast')}
-                isActive={pathname.startsWith('/xlsx-broadcast')}
-                tooltip="Angsuran Broadcast"
-              >
-                <FileSpreadsheet />
-                <span>Angsuran Broadcast</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => router.push('/experiments')}
