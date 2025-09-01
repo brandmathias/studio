@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileSpreadsheet } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileSpreadsheet, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -94,7 +94,7 @@ export default function MainLayout({
                     <DropdownMenuLabel>Pilih Jenis Broadcast</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => router.push('/pdf-broadcast')}>
-                      <FileUp className="mr-2 h-4 w-4" />
+                      <FileText className="mr-2 h-4 w-4" />
                       <span>Gadaian Broadcast</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => router.push('/xlsx-broadcast')}>
