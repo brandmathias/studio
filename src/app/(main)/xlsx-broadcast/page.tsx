@@ -34,12 +34,18 @@ const formatCurrency = (value: number | string | undefined) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
 }
 
-const formatDate = (excelDate: number): string => {
-    if (!excelDate || isNaN(excelDate)) return 'N/A';
-    // Excel stores dates as number of days since 1900-01-01.
-    // The conversion needs to account for Excel's leap year bug (1900).
-    const date = new Date((excelDate - (25567 + 1)) * 86400 * 1000);
-    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+const formatDate = (value: string | number): string => {
+    if (typeof value === 'number') {
+        // Excel stores dates as number of days since 1900-01-01.
+        // The conversion needs to account for Excel's leap year bug (1900).
+        if (value > 0) {
+            const date = new Date((value - (25567 + 1)) * 86400 * 1000);
+            return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        }
+        return 'N/A';
+    }
+    // If it's already a string, return it as is.
+    return String(value);
 };
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
@@ -88,10 +94,10 @@ export default function XlsxBroadcastPage() {
             const workbook = XLSX.read(data, { type: 'binary' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            // The `raw: false` option is crucial for dates to be parsed correctly
-            const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+            // Using `raw: true` is crucial for getting raw numbers instead of formatted strings.
+            const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
 
-            // Skip header row (index 0) and filter out irrelevant rows
+            // Skip header row (index 0) and map the data
             const customers: InstallmentCustomer[] = json.slice(1).map((row: any, index) => ({
                 id: row[0] ? String(row[0]).split('\n')[1] || `row-${index}` : `row-${index}`, // Use second line of "Nasabah" as ID
                 nasabah: row[0] || '',
@@ -107,8 +113,8 @@ export default function XlsxBroadcastPage() {
                 kunjungan_terakhir: row[10] || 'N/A'
             })).filter(c => {
                 // Filter out empty rows and header-like rows that might appear in the data
-                const isHeaderRow = c.nasabah.trim() === 'Nasabah' || c.produk.trim() === 'Produk';
-                const isEmptyRow = !c.nasabah.trim() && !c.produk.trim();
+                const isHeaderRow = String(c.nasabah).trim() === 'Nasabah' || String(c.produk).trim() === 'Produk';
+                const isEmptyRow = !String(c.nasabah).trim() && !String(c.produk).trim();
                 return !isHeaderRow && !isEmptyRow;
             });
 
@@ -392,8 +398,8 @@ Terima Kasih`;
                       <TableCell className="text-center">{customer.tenor}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.angsuran)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.kewajiban)}</TableCell>
-                      <TableCell className="whitespace-pre-line">{customer.pencairan}</TableCell>
-                      <TableCell>{customer.kunjungan_terakhir}</TableCell>
+                      <TableCell className="whitespace-pre-line">{formatDate(customer.pencairan)}</TableCell>
+                      <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                            <DropdownMenu>
@@ -446,7 +452,3 @@ Terima Kasih`;
     </main>
   );
 }
-
-    
-
-    
