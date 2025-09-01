@@ -107,15 +107,13 @@ export default function XlsxBroadcastPage() {
             const workbook = XLSX.read(data, { type: 'binary' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            // Using `raw: true` is crucial for getting raw numbers instead of formatted strings.
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true });
 
-            // Skip header row (index 0) and map the data
             const customers: InstallmentCustomer[] = json.slice(1).map((row: any, index) => {
                 const nasabahCell = String(row[0] || '');
-                const id = nasabahCell.split('\n')[1] || ''; // Extract ID from second line
+                const customerId = nasabahCell.split('\n')[1] || `row-${index}`; // Robust ID generation
                 return {
-                    id: id,
+                    id: customerId,
                     nasabah: nasabahCell,
                     produk: row[1] || '',
                     pinjaman: Number(row[2]) || 0,
@@ -131,10 +129,9 @@ export default function XlsxBroadcastPage() {
             }).filter(c => {
                 const nasabahText = String(c.nasabah).trim();
                 const produkText = String(c.produk).trim();
-                // Filter out header-like rows and rows without a valid ID
                 const isHeaderRow = nasabahText === 'Nasabah' || produkText === 'Produk';
-                const hasValidId = !!c.id;
-                return !isHeaderRow && hasValidId;
+                const isEmptyRow = !nasabahText && !produkText;
+                return !isHeaderRow && !isEmptyRow;
             });
 
             setImportedData(customers);
@@ -192,7 +189,7 @@ export default function XlsxBroadcastPage() {
         const customerName = customer.nasabah.split('\n')[0];
         const productName = customer.produk.split('\n')[0];
         let messageBody = '';
-        const upc = getUpcFromId(customer.id);
+        const upc = getUpcFromId(customer.id); // Use the customer ID which contains the branch code
         let headerLine = '';
 
         if (upc === 'Pegadaian Wanea') {
@@ -428,7 +425,7 @@ Terima Kasih`;
                       <TableCell className="text-center">{customer.tenor}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.angsuran)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.kewajiban)}</TableCell>
-                      <TableCell className="whitespace-pre-line">{formatDate(customer.pencairan)}</TableCell>
+                      <TableCell>{formatDate(customer.pencairan)}</TableCell>
                       <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -482,5 +479,7 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
 
     
