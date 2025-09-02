@@ -35,7 +35,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const allowedAccounts = [
-  { email: 'admin.wanena@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea', avatar: '' },
+  { email: 'admin.wanea@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea', avatar: '' },
   { email: 'admin.ranotana@pegadaian.co.id', password: 'UpcRanotana*0', name: 'Admin Ranotana', upc: 'Pegadaian Ranotana', avatar: '' },
   { email: 'brandomathiasz13@gmail.com', password: 'Brandomz13#', name: 'Brando Mathiasz', upc: 'all', avatar: '' },
   { email: 'saviopalendeng506@gmail.com', password: 'Saviohp506', name: 'Savio Palendeng', upc: 'all', avatar: '' },
