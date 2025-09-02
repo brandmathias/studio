@@ -70,6 +70,7 @@ import {
   Building,
   Megaphone,
   Star,
+  UserCheck,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -162,6 +163,10 @@ interface UpcProfileData {
     mapUrl: string;
     announcement: string;
     featuredProduct: string;
+    staff: {
+        penaksir: { name: string; status: 'Online' | 'Offline'; avatar: string },
+        kasir: { name: string; status: 'Online' | 'Offline'; avatar: string },
+    }
 }
 
 const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
@@ -173,7 +178,11 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         description: "Melayani area Wanea dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.",
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.513904996929!2d124.84803331521033!3d1.481193998964724!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x328774e1c8c95697%3A0x66f12204680d3d5e!2sPegadaian%20UPC%20Wanea!5e0!3m2!1sen!2sid!4v1622013892789!5m2!1sen!2sid",
         announcement: "Rapat evaluasi bulanan akan diadakan pada hari Jumat ini pukul 14:00.",
-        featuredProduct: "Cicil Emas"
+        featuredProduct: "Cicil Emas",
+        staff: {
+            penaksir: { name: 'Jevani Tatontos', status: 'Online', avatar: 'https://placehold.co/100x100/EEDD82/000000?text=JT' },
+            kasir: { name: 'Chintya Timbuleng', status: 'Online', avatar: 'https://placehold.co/100x100/D8BFD8/000000?text=CT' },
+        }
     },
     'Pegadaian Ranotana': {
         name: "UPC Ranotana",
@@ -183,7 +192,11 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         description: "Spesialisasi dalam layanan angsuran kendaraan dan gadai barang elektronik.",
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15954.073843513346!2d124.82583315!3d1.4646738499999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
         announcement: "Jangan lupa untuk mengikuti training produk baru minggu depan.",
-        featuredProduct: "Pinjaman Modal Produktif"
+        featuredProduct: "Pinjaman Modal Produktif",
+        staff: {
+            penaksir: { name: 'Michael Wowor', status: 'Online', avatar: 'https://placehold.co/100x100/A0E6E6/000000?text=MW' },
+            kasir: { name: 'Jessica Manopo', status: 'Offline', avatar: 'https://placehold.co/100x100/FFC0CB/000000?text=JM' },
+        }
     },
     'N/A': { // Fallback for customers without a clear UPC
         name: "Kantor Cabang",
@@ -193,7 +206,11 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         description: "Informasi cabang tidak tersedia.",
         mapUrl: "",
         announcement: "Tidak ada pengumuman.",
-        featuredProduct: "Gadai Tabungan Emas"
+        featuredProduct: "Gadai Tabungan Emas",
+        staff: {
+            penaksir: { name: 'N/A', status: 'Offline', avatar: '' },
+            kasir: { name: 'N/A', status: 'Offline', avatar: '' },
+        }
     },
     'all': { // For Super Admin
         name: "Kantor Pusat Pegadaian",
@@ -203,7 +220,11 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         description: "Dashboard Super Admin. Mengawasi seluruh operasional Unit Pelayanan Cabang.",
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.529126294488!2d106.845553315228!3d-6.19543199551694!2m3!1f0!2f0!3f0!3m2!1i1024!2i780!4f13.1!3m3!1m2!1s0x2e69f441b53e7c81%3A0x1d6a6c2a13f2a71!2sPT%20Pegadaian%20(Persero)%20Kantor%20Pusat!5e0!3m2!1sen!2sid!4v1622014120894!5m2!1sen!2sid",
         announcement: "Fokus Q3 adalah peningkatan kualitas layanan di semua cabang.",
-        featuredProduct: "Gadai Efek"
+        featuredProduct: "Gadai Efek",
+        staff: {
+            penaksir: { name: 'System', status: 'Online', avatar: '' },
+            kasir: { name: 'System', status: 'Online', avatar: '' },
+        }
     },
 };
 
@@ -719,6 +740,46 @@ Terima Kasih`;
               </CardContent>
           </Card>
         </div>
+        
+        {userUpc !== 'all' && (
+          <div className="grid gap-6 md:grid-cols-2">
+             {/* Staff Cards */}
+              <Card>
+                  <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                      <Avatar className="h-12 w-12">
+                          <AvatarImage src={profileData.staff.penaksir.avatar} />
+                          <AvatarFallback>{profileData.staff.penaksir.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                          <CardTitle className="text-lg">Penaksir Bertugas</CardTitle>
+                          <p className="text-base font-semibold">{profileData.staff.penaksir.name}</p>
+                      </div>
+                  </CardHeader>
+                   <CardContent>
+                       <Badge variant={profileData.staff.penaksir.status === 'Online' ? 'default' : 'outline'} className={cn(profileData.staff.penaksir.status === 'Online' && 'bg-green-600/80')}>
+                          {profileData.staff.penaksir.status}
+                       </Badge>
+                  </CardContent>
+              </Card>
+               <Card>
+                  <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                       <Avatar className="h-12 w-12">
+                          <AvatarImage src={profileData.staff.kasir.avatar} />
+                          <AvatarFallback>{profileData.staff.kasir.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                          <CardTitle className="text-lg">Kasir Bertugas</CardTitle>
+                          <p className="text-base font-semibold">{profileData.staff.kasir.name}</p>
+                      </div>
+                  </CardHeader>
+                   <CardContent>
+                        <Badge variant={profileData.staff.kasir.status === 'Online' ? 'default' : 'outline'} className={cn(profileData.staff.kasir.status === 'Online' && 'bg-green-600/80')}>
+                          {profileData.staff.kasir.status}
+                       </Badge>
+                  </CardContent>
+              </Card>
+          </div>
+        )}
 
 
         <Card>
@@ -936,5 +997,7 @@ Terima Kasih`;
     </div>
   );
 }
+
+    
 
     
