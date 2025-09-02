@@ -72,6 +72,8 @@ import {
   Star,
   UserCheck,
   AlertTriangle,
+  Map,
+  Camera,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -162,6 +164,7 @@ interface UpcProfileData {
     operatingHours: string;
     description: string;
     mapUrl: string;
+    streetViewUrl: string;
     announcement: string;
     featuredProduct: string;
     staff: {
@@ -177,7 +180,8 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         phone: "(0431) 123-456",
         operatingHours: "Senin - Jumat: 08:00 - 15:00",
         description: "Melayani area Wanea dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.",
-        mapUrl: "https://www.google.com/maps/embed?pb=!4v1756820019859!6m8!1m7!1sURTplg6edk2jkLO08BLxXg!2m2!1d1.471982700633795!2d124.8378581836489!3f62.93597041625598!4f5.839056400493703!5f0.7820865974627469",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
+        streetViewUrl: "https://www.google.com/maps/embed?pb=!4v1756820019859!6m8!1m7!1sURTplg6edk2jkLO08BLxXg!2m2!1d1.471982700633795!2d124.8378581836489!3f62.93597041625598!4f5.839056400493703!5f0.7820865974627469",
         announcement: "Rapat evaluasi bulanan akan diadakan pada hari Jumat ini pukul 14:00.",
         featuredProduct: "Cicil Emas",
         staff: {
@@ -192,6 +196,7 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         operatingHours: "Senin - Sabtu: 08:00 - 16:00",
         description: "Spesialisasi dalam layanan angsuran kendaraan dan gadai barang elektronik.",
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
+        streetViewUrl: "https://www.google.com/maps/embed?pb=!1m0!4v1719216962386!6m8!1m7!1sCAoSLEFGMVFpcE5MY3Z0OGdaVURFN2p0XzREdGo0V2hCcEJBTWpNVXN2d3ZqTFNr!2m2!1d1.4746025!2d124.8399583!3f240.23!4f-1.339999999999996!5f0.7820865974627469",
         announcement: "Jangan lupa untuk mengikuti training produk baru minggu depan.",
         featuredProduct: "Pinjaman Modal Produktif",
         staff: {
@@ -206,6 +211,7 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         operatingHours: "N/A",
         description: "Informasi cabang tidak tersedia.",
         mapUrl: "",
+        streetViewUrl: "",
         announcement: "Tidak ada pengumuman.",
         featuredProduct: "Gadai Tabungan Emas",
         staff: {
@@ -220,6 +226,7 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         operatingHours: "Senin - Jumat: 08:00 - 17:00",
         description: "Dashboard Super Admin. Mengawasi seluruh operasional Unit Pelayanan Cabang.",
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.529126294488!2d106.845553315228!3d-6.19543199551694!2m3!1f0!2f0!3f0!3m2!1i1024!2i780!4f13.1!3m3!1m2!1s0x2e69f441b53e7c81%3A0x1d6a6c2a13f2a71!2sPT%20Pegadaian%20(Persero)%20Kantor%20Pusat!5e0!3m2!1sen!2sid!4v1622014120894!5m2!1sen!2sid",
+        streetViewUrl: "https://www.google.com/maps/embed?pb=!1m0!4v1719217141382!6m8!1m7!1sCAoSLEFGMVFpcE5pTXZET21YNnFLdGdMQS1EM1pUcU5sYVdZb2dZWFItb2YxcmNP!2m2!1d-6.1953589!2d106.8455844!3f314.94!4f-2.22!5f0.7820865974627469",
         announcement: "Fokus Q3 adalah peningkatan kualitas layanan di semua cabang.",
         featuredProduct: "Gadai Efek",
         staff: {
@@ -254,6 +261,8 @@ export default function DashboardPage() {
 
   const [tasks, setTasks] = React.useState<ScheduledTask[]>([]);
   const customerRowsRef = React.useRef<Record<string, HTMLTableRowElement | null>>({});
+  
+  const [mapView, setMapView] = React.useState<'map' | 'street'>('map');
 
   // Auth and data loading effect
   React.useEffect(() => {
@@ -728,23 +737,34 @@ Terima Kasih`;
                         </div>
                       </div>
                   </div>
-                  <div className="rounded-lg overflow-hidden border aspect-video">
-                       {profileData.mapUrl ? (
-                         <iframe
-                            src={profileData.mapUrl}
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen={false}
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                        ></iframe>
-                       ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
-                            Peta tidak tersedia
+                   <div className='relative'>
+                        <div className="absolute top-2 right-2 z-10 bg-background/70 p-1 rounded-md backdrop-blur-sm flex items-center gap-1">
+                            <Button size="sm" variant={mapView === 'map' ? 'secondary' : 'ghost'} onClick={() => setMapView('map')}>
+                                <Map className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant={mapView === 'street' ? 'secondary' : 'ghost'} onClick={() => setMapView('street')}>
+                                <Camera className="h-4 w-4" />
+                            </Button>
                         </div>
-                       )}
-                  </div>
+                        <div className="rounded-lg overflow-hidden border aspect-video">
+                            {profileData.mapUrl ? (
+                                <iframe
+                                    key={mapView} 
+                                    src={mapView === 'map' ? profileData.mapUrl : profileData.streetViewUrl}
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0 }}
+                                    allowFullScreen={false}
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                ></iframe>
+                            ) : (
+                                <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
+                                    Peta tidak tersedia
+                                </div>
+                            )}
+                        </div>
+                   </div>
               </CardContent>
           </Card>
 
@@ -1081,5 +1101,6 @@ Terima Kasih`;
     
 
     
+
 
 
