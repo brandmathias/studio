@@ -20,16 +20,27 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function HistoryPage() {
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>(startOfToday());
+  const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast'>('all');
 
   React.useEffect(() => {
     try {
       const storedHistory = localStorage.getItem('broadcastHistory');
       if (storedHistory) {
-        setHistory(JSON.parse(storedHistory));
+        // Sort history by most recent first
+        const parsedHistory = JSON.parse(storedHistory);
+        parsedHistory.sort((a: HistoryEntry, b: HistoryEntry) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setHistory(parsedHistory);
       }
     } catch (error) {
       console.error("Failed to parse history from localStorage", error);
@@ -37,9 +48,12 @@ export default function HistoryPage() {
   }, []);
 
   const filteredHistory = React.useMemo(() => {
-    if (!dateFilter) return history;
-    return history.filter(entry => isSameDay(new Date(entry.timestamp), dateFilter));
-  }, [history, dateFilter]);
+    return history.filter(entry => {
+        const dateMatch = !dateFilter ? true : isSameDay(new Date(entry.timestamp), dateFilter);
+        const typeMatch = typeFilter === 'all' ? true : entry.type === typeFilter;
+        return dateMatch && typeMatch;
+    });
+  }, [history, dateFilter, typeFilter]);
 
   const clearHistory = () => {
     localStorage.removeItem('broadcastHistory');
@@ -50,6 +64,11 @@ export default function HistoryPage() {
     if (template.includes('lelang')) return 'destructive';
     if (template.includes('keterlambatan')) return 'secondary';
     return 'outline';
+  }
+  
+  const clearFilters = () => {
+    setDateFilter(undefined);
+    setTypeFilter('all');
   }
 
   return (
@@ -65,40 +84,52 @@ export default function HistoryPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                     <Filter className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold text-lg">Filter Tanggal</h3>
+                    <h3 className="font-semibold text-lg">Filter</h3>
                 </div>
-                <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        variant={'outline'}
-                        className={cn(
-                        'w-full sm:w-[240px] justify-start text-left font-normal bg-background',
-                        !dateFilter && 'text-muted-foreground'
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateFilter ? format(dateFilter, 'PPP', { locale: id }) : <span>Pilih tanggal</span>}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                        mode="single"
-                        selected={dateFilter}
-                        onSelect={setDateFilter}
-                        initialFocus
-                    />
-                    </PopoverContent>
-                </Popover>
-                 {dateFilter && (
-                    <Button variant="ghost" onClick={() => setDateFilter(undefined)}>
-                        Tampilkan Semua
+                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto flex-1">
+                     <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            variant={'outline'}
+                            className={cn(
+                            'w-full sm:w-[240px] justify-start text-left font-normal bg-background',
+                            !dateFilter && 'text-muted-foreground'
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateFilter ? format(dateFilter, 'PPP', { locale: id }) : <span>Pilih tanggal</span>}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={dateFilter}
+                            onSelect={setDateFilter}
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as any)}>
+                        <SelectTrigger className="w-full sm:w-[220px] bg-background">
+                            <SelectValue placeholder="Filter Jenis Broadcast" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Semua Jenis</SelectItem>
+                            <SelectItem value="Gadaian Broadcast">Gadaian Broadcast</SelectItem>
+                            <SelectItem value="Angsuran Broadcast">Angsuran Broadcast</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
+                 {(dateFilter || typeFilter !== 'all') && (
+                    <Button variant="ghost" onClick={clearFilters}>
+                        Bersihkan Filter
                     </Button>
                 )}
-                <div className="flex-grow"></div>
-                 <Button variant="destructive" onClick={clearHistory}>
+                <div className="hidden md:flex flex-grow"></div>
+                 <Button variant="destructive" onClick={clearHistory} className="w-full md:w-auto">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Bersihkan Riwayat
                 </Button>
@@ -119,7 +150,7 @@ export default function HistoryPage() {
                     {filteredHistory.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={6} className="h-24 text-center">
-                            Tidak ada riwayat aktivitas untuk tanggal yang dipilih.
+                            Tidak ada riwayat aktivitas yang cocok dengan filter.
                             </TableCell>
                         </TableRow>
                     ) : (
@@ -128,12 +159,18 @@ export default function HistoryPage() {
                         <TableCell>
                             {format(new Date(entry.timestamp), 'dd MMM yyyy, HH:mm:ss', { locale: id })}
                         </TableCell>
-                        <TableCell>{entry.type}</TableCell>
+                        <TableCell>
+                           <Badge variant={entry.type === 'Gadaian Broadcast' ? 'default' : 'secondary'} className="capitalize">
+                                {entry.type}
+                            </Badge>
+                        </TableCell>
                         <TableCell>
                             <div className="font-medium">{entry.customerName}</div>
                             <div className="text-sm text-muted-foreground">{entry.customerIdentifier}</div>
                         </TableCell>
-                        <TableCell>{entry.status}</TableCell>
+                        <TableCell>
+                            <Badge variant={entry.status === 'Pesan Disalin' ? 'outline' : 'default'} className={cn(entry.status !== 'Pesan Disalin' && 'bg-green-600')}>{entry.status}</Badge>
+                        </TableCell>
                         <TableCell>
                              <Badge variant={getTemplateBadgeVariant(entry.template)} className="capitalize">
                                 {entry.template}
@@ -152,3 +189,4 @@ export default function HistoryPage() {
   );
 }
 
+    
