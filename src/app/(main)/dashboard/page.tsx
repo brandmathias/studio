@@ -63,6 +63,7 @@ import {
   CheckCircle2,
   LayoutGrid,
   List,
+  ClipboardList,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -640,7 +641,10 @@ Terima Kasih`;
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem><User className="mr-2 h-4 w-4" />Profile</DropdownMenuItem>
+               <DropdownMenuItem onClick={() => router.push('/tasks')}>
+                <ClipboardList className="mr-2 h-4 w-4" />
+                <span>Lacak Tugas</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
