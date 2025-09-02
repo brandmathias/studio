@@ -64,6 +64,12 @@ import {
   LayoutGrid,
   List,
   ClipboardList,
+  MapPin,
+  Phone,
+  Clock,
+  Building,
+  Megaphone,
+  Star,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
@@ -147,11 +153,66 @@ const INITIAL_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 
+interface UpcProfileData {
+    name: string;
+    address: string;
+    phone: string;
+    operatingHours: string;
+    description: string;
+    mapUrl: string;
+    announcement: string;
+    featuredProduct: string;
+}
+
+const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
+    'Pegadaian Wanea': {
+        name: "UPC Wanea",
+        address: "Jl. Sam Ratulangi No.123, Wanea, Manado",
+        phone: "(0431) 123-456",
+        operatingHours: "Senin - Jumat: 08:00 - 15:00",
+        description: "Melayani area Wanea dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.513904996929!2d124.84803331521033!3d1.481193998964724!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x328774e1c8c95697%3A0x66f12204680d3d5e!2sPegadaian%20UPC%20Wanea!5e0!3m2!1sen!2sid!4v1622013892789!5m2!1sen!2sid",
+        announcement: "Rapat evaluasi bulanan akan diadakan pada hari Jumat ini pukul 14:00.",
+        featuredProduct: "Cicil Emas"
+    },
+    'Pegadaian Ranotana': {
+        name: "UPC Ranotana",
+        address: "Komp. Ruko Ranotana, Jl. D.I. Panjaitan, Manado",
+        phone: "(0431) 987-654",
+        operatingHours: "Senin - Sabtu: 08:00 - 16:00",
+        description: "Spesialisasi dalam layanan angsuran kendaraan dan gadai barang elektronik.",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15954.073843513346!2d124.82583315!3d1.4646738499999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
+        announcement: "Jangan lupa untuk mengikuti training produk baru minggu depan.",
+        featuredProduct: "Pinjaman Modal Produktif"
+    },
+    'N/A': { // Fallback for customers without a clear UPC
+        name: "Kantor Cabang",
+        address: "N/A",
+        phone: "N/A",
+        operatingHours: "N/A",
+        description: "Informasi cabang tidak tersedia.",
+        mapUrl: "",
+        announcement: "Tidak ada pengumuman.",
+        featuredProduct: "Gadai Tabungan Emas"
+    },
+    'all': { // For Super Admin
+        name: "Kantor Pusat Pegadaian",
+        address: "Jl. Kramat Raya No.162, Jakarta Pusat",
+        phone: "(021) 123-4567",
+        operatingHours: "Senin - Jumat: 08:00 - 17:00",
+        description: "Dashboard Super Admin. Mengawasi seluruh operasional Unit Pelayanan Cabang.",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.529126294488!2d106.845553315228!3d-6.19543199551694!2m3!1f0!2f0!3f0!3m2!1i1024!2i780!4f13.1!3m3!1m2!1s0x2e69f441b53e7c81%3A0x1d6a6c2a13f2a71!2sPT%20Pegadaian%20(Persero)%20Kantor%20Pusat!5e0!3m2!1sen!2sid!4v1622014120894!5m2!1sen!2sid",
+        announcement: "Fokus Q3 adalah peningkatan kualitas layanan di semua cabang.",
+        featuredProduct: "Gadai Efek"
+    },
+};
+
+
 
 export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc']>('all');
+  const [userUpc, setUserUpc] = React.useState<keyof typeof upcProfiles>('all');
   const [customers, setCustomers] = React.useState<Customer[]>([]);
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const [priorityFilter, setPriorityFilter] = React.useState('all');
@@ -184,7 +245,7 @@ export default function DashboardPage() {
     try {
       const storedUser = localStorage.getItem('loggedInUser');
       const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
-      setUserUpc(upc);
+      setUserUpc(upc === 'all' ? 'all' : upc);
 
       const storageKey = `gadaiAlert_customers_${upc}`;
       const storedCustomers = localStorage.getItem(storageKey);
@@ -503,22 +564,6 @@ Terima Kasih`;
       none: 'outline',
   };
 
-  const priorityData = React.useMemo(() => {
-    const counts = customers.reduce((acc, customer) => {
-      if (customer.priority !== 'none') {
-        const priorityName = customer.priority.charAt(0).toUpperCase() + customer.priority.slice(1);
-        acc[priorityName] = (acc[priorityName] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return [
-        { name: 'Tinggi', value: counts.Tinggi || 0, color: 'hsl(var(--destructive))' },
-        { name: 'Sedang', value: counts.Sedang || 0, color: 'hsl(var(--accent))' },
-        { name: 'Rendah', value: counts.Rendah || 0, color: 'hsl(var(--secondary))' },
-    ].filter(d => d.value > 0);
-  }, [customers]);
-
   const segmentVariantMap: Record<Customer['segment'], VariantProps<typeof Badge>['variant']> = {
       'Platinum': 'default',
       'Reguler': 'secondary',
@@ -556,6 +601,8 @@ Terima Kasih`;
         </PopoverContent>
     );
   };
+  
+  const profileData = upcProfiles[userUpc] || upcProfiles['N/A'];
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
@@ -594,69 +641,85 @@ Terima Kasih`;
         <div className="flex items-center">
             <h1 className="text-2xl font-bold tracking-tight font-headline">Customer Intelligence Dashboard</h1>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Nasabah</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{customers.length}</div>
-                    <p className="text-xs text-muted-foreground">Jumlah nasabah aktif</p>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Notifikasi Terkirim</CardTitle>
-                    <BellRing className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{notificationsSent}</div>
-                    <p className="text-xs text-muted-foreground">Total notifikasi dikirim hari ini</p>
-                </CardContent>
-            </Card>
-            <Card className="md:col-span-2">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Distribusi Prioritas</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {priorityData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={120}>
-                            <PieChart>
-                                <Pie
-                                    data={priorityData}
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={50}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                    labelLine={false}
-                                    className="text-xs"
-                                >
-                                {priorityData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                                </Pie>
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'hsl(var(--background))',
-                                        borderColor: 'hsl(var(--border))',
-                                        fontSize: '12px',
-                                        borderRadius: 'var(--radius)'
-                                    }}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
-                     ) : (
-                        <div className="flex items-center justify-center h-[120px] text-sm text-muted-foreground">
-                            Jalankan Auto-Prioritize untuk melihat data.
+        
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* UPC Profile Card */}
+          <Card className="lg:col-span-2">
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-6 w-6 text-primary" />
+                    Profil {profileData.name}
+                  </CardTitle>
+                  <CardDescription>{profileData.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-4">
+                      <div className="space-y-2">
+                        <h4 className="font-semibold">Informasi Cabang</h4>
+                        <div className="flex items-start gap-3 text-sm">
+                            <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                            <span>{profileData.address}</span>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+                        <div className="flex items-center gap-3 text-sm">
+                            <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span>{profileData.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm">
+                            <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span>{profileData.operatingHours}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-semibold">Informasi Tambahan</h4>
+                         <div className="flex items-start gap-3 text-sm p-3 bg-accent/10 rounded-lg border border-accent/20">
+                            <Megaphone className="h-4 w-4 mt-1 text-accent-foreground flex-shrink-0" />
+                            <div>
+                                <p className="font-medium text-accent-foreground">Pengumuman Internal:</p>
+                                <p className="text-muted-foreground">{profileData.announcement}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3 text-sm p-3 bg-primary/5 rounded-lg border border-primary/20">
+                            <Star className="h-4 w-4 mt-1 text-primary flex-shrink-0" />
+                            <div>
+                                <p className="font-medium text-primary">Produk Unggulan Bulan Ini:</p>
+                                <p className="text-muted-foreground">{profileData.featuredProduct}</p>
+                            </div>
+                        </div>
+                      </div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden border aspect-video">
+                       {profileData.mapUrl ? (
+                         <iframe
+                            src={profileData.mapUrl}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen={false}
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                        ></iframe>
+                       ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
+                            Peta tidak tersedia
+                        </div>
+                       )}
+                  </div>
+              </CardContent>
+          </Card>
+
+          {/* Total Customers Card */}
+          <Card className="lg:col-span-1 flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Nasabah</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                  <div className="text-2xl font-bold">{customers.length}</div>
+                  <p className="text-xs text-muted-foreground">Jumlah nasabah aktif di {userUpc === 'all' ? 'semua cabang' : profileData.name}</p>
+              </CardContent>
+          </Card>
         </div>
+
 
         <Card>
             <CardContent className="p-4">
@@ -873,3 +936,5 @@ Terima Kasih`;
     </div>
   );
 }
+
+    
