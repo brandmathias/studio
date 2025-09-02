@@ -195,7 +195,7 @@ export default function AnalisisNasabahPage() {
                         <TableCell>
                             {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(customer.loan_value)}
                         </TableCell>
-                        <TableCell className="max-w-xs truncate">{customer.barang_jaminan}</TableCell>
+                        <TableCell>{customer.barang_jaminan}</TableCell>
                         <TableCell>
                            <Button 
                                 size="sm" 
