@@ -144,7 +144,7 @@ export default function TasksPage() {
 
   return (
     <main className="flex flex-1 flex-col">
-       <div className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10">
+       <div className="flex items-center justify-between p-4 border-b bg-background">
           <h1 className="text-2xl font-bold tracking-tight font-headline">Lacak Tugas & Alur Kerja</h1>
           <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])}>
               <PlusCircle className="mr-2 h-4 w-4" />
