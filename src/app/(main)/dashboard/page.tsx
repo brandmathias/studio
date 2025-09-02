@@ -176,9 +176,9 @@ interface UpcProfileData {
 const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
     'Pegadaian Wanea': {
         name: "UPC Wanea",
-        address: "Jl. Sam Ratulangi No.123, Wanea, Manado",
-        phone: "(0431) 123-456",
-        operatingHours: "Senin - Jumat: 08:00 - 15:00",
+        address: "JL. Sam Ratulangi No.122, Wanea, Manado",
+        phone: "081142582666",
+        operatingHours: "Senin - Jumat: 08:00 - 15.30 dan Sabtu: 08:00 - 12:30",
         description: "Melayani area Wanea dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.",
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
         streetViewUrl: "https://www.google.com/maps/embed?pb=!4v1756820019859!6m8!1m7!1sURTplg6edk2jkLO08BLxXg!2m2!1d1.471982700633795!2d124.8378581836489!3f62.93597041625598!4f5.839056400493703!5f0.7820865974627469",
@@ -776,15 +776,10 @@ Terima Kasih`;
                           <AvatarFallback>{profileData.staff.penaksir.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                          <CardTitle className="text-lg">Penaksir Bertugas</CardTitle>
+                          <CardTitle className="text-lg">Penaksir</CardTitle>
                           <p className="text-base font-semibold">{profileData.staff.penaksir.name}</p>
                       </div>
                   </CardHeader>
-                   <CardContent>
-                       <Badge variant={profileData.staff.penaksir.status === 'Online' ? 'default' : 'outline'} className={cn(profileData.staff.penaksir.status === 'Online' && 'bg-green-600/80')}>
-                          {profileData.staff.penaksir.status}
-                       </Badge>
-                  </CardContent>
               </Card>
                <Card>
                   <CardHeader className="flex flex-row items-center gap-4 space-y-0">
@@ -793,15 +788,10 @@ Terima Kasih`;
                           <AvatarFallback>{profileData.staff.kasir.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                          <CardTitle className="text-lg">Kasir Bertugas</CardTitle>
+                          <CardTitle className="text-lg">Kasir</CardTitle>
                           <p className="text-base font-semibold">{profileData.staff.kasir.name}</p>
                       </div>
                   </CardHeader>
-                   <CardContent>
-                        <Badge variant={profileData.staff.kasir.status === 'Online' ? 'default' : 'outline'} className={cn(profileData.staff.kasir.status === 'Online' && 'bg-green-600/80')}>
-                          {profileData.staff.kasir.status}
-                       </Badge>
-                  </CardContent>
               </Card>
           </div>
         )}
@@ -1026,6 +1016,7 @@ Terima Kasih`;
     
 
     
+
 
 
 
