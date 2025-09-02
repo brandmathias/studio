@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileSpreadsheet, FileText, History } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -28,6 +28,11 @@ import {
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
+interface User {
+  name: string;
+  email: string;
+}
+
 export default function MainLayout({
   children,
 }: {
@@ -35,9 +40,22 @@ export default function MainLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [user, setUser] = React.useState<User | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('loggedInUser');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse user from localStorage", error);
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('loggedInUser');
     router.push('/login');
   };
   
@@ -133,19 +151,19 @@ export default function MainLayout({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start gap-2 px-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/40x40" alt="Admin" data-ai-hint="person portrait" />
-                  <AvatarFallback>A</AvatarFallback>
+                  <AvatarImage src="https://placehold.co/40x40" alt={user?.name || 'User'} data-ai-hint="person portrait" />
+                  <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="text-left">
-                  <p className="text-sm font-medium">Admin</p>
+                  <p className="text-sm font-medium">{user?.name || 'User'}</p>
                   <p className="text-xs text-muted-foreground">
-                    admin@pegadaian.co.id
+                    {user?.email || ''}
                   </p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

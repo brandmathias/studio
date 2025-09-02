@@ -75,6 +75,14 @@ export default function PdfBroadcastPage() {
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [adminUser, setAdminUser] = React.useState('Admin');
+
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem('loggedInUser');
+    if (storedUser) {
+        setAdminUser(JSON.parse(storedUser).name);
+    }
+  }, []);
 
   const [isGeneratingVoicenote, setIsGeneratingVoicenote] = React.useState(false);
   const [activeVoicenote, setActiveVoicenote] = React.useState<{
@@ -92,7 +100,7 @@ export default function PdfBroadcastPage() {
         customerName: customer.name,
         customerIdentifier: customer.sbg_number,
         status,
-        adminUser: 'Admin', // Hardcoded for now
+        adminUser: adminUser,
         template: template,
       };
 

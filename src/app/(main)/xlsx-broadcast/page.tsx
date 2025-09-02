@@ -60,6 +60,15 @@ export default function XlsxBroadcastPage() {
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [adminUser, setAdminUser] = React.useState('Admin');
+
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem('loggedInUser');
+    if (storedUser) {
+        setAdminUser(JSON.parse(storedUser).name);
+    }
+  }, []);
+
 
   const [isGeneratingVoicenote, setIsGeneratingVoicenote] = React.useState(false);
   const [activeVoicenote, setActiveVoicenote] = React.useState<{
@@ -80,7 +89,7 @@ export default function XlsxBroadcastPage() {
         customerName: customerName,
         customerIdentifier: customerIdentifier,
         status,
-        adminUser: 'Admin', // Hardcoded for now
+        adminUser: adminUser,
         template: template,
       };
 
@@ -139,16 +148,11 @@ export default function XlsxBroadcastPage() {
                 kunjungan_terakhir: row[10] || 'N/A'
             }))
             .filter(c => {
-                const nasabahText = c.nasabah.trim();
                 const produkText = c.produk.trim();
-                // A valid row MUST have a product.
-                if (!produkText) return false;
-
-                // Filter out header rows that might be repeated in the file
-                const isHeaderRow = nasabahText.toLowerCase() === 'nasabah' || produkText.toLowerCase() === 'produk';
-                if (isHeaderRow) return false;
-
-                return true; // If it has a product and is not a header, it's valid data.
+                // A valid row MUST have a product and a positive loan value
+                if (!produkText || c.kewajiban <= 0) return false;
+                
+                return true;
             });
 
             setImportedData(customers);

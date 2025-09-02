@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -29,10 +30,18 @@ import {
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  password: z.string().min(1, { message: 'Password cannot be empty.' }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+
+const allowedAccounts = [
+  { email: 'admin.wanena@pegadaian.co.id', password: 'password1', name: 'Admin Wanea' },
+  { email: 'admin.ranotana@pegadaian.co.id', password: 'password2', name: 'Admin Ranotana' },
+  { email: 'brandomathiasz13@gmail.com', password: 'password3', name: 'Brando Mathiasz' },
+  { email: 'saviopalendeng506@gmail.com', password: 'password4', name: 'Savio Palendeng' },
+];
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,31 +56,32 @@ export default function LoginPage() {
     },
   });
   
-  // Simulate Firebase login
   const onSubmit = (data: LoginFormValues) => {
     setIsLoading(true);
 
-    // Dummy validation
-    if (data.email === 'admin@pegadaian.co.id' && data.password === 'password') {
-        setTimeout(() => {
-            localStorage.setItem('isLoggedIn', 'true');
-            toast({
-              title: 'Login Successful',
-              description: 'Welcome back, Admin!',
-            });
-            router.push('/');
-            setIsLoading(false);
-        }, 1500);
-    } else {
-        setTimeout(() => {
-            toast({
-              title: 'Login Failed',
-              description: 'Invalid email or password. Please try again.',
-              variant: 'destructive',
-            });
-            setIsLoading(false);
-        }, 1500);
-    }
+    const validUser = allowedAccounts.find(
+      (account) => account.email.toLowerCase() === data.email.toLowerCase() && account.password === data.password
+    );
+
+    setTimeout(() => {
+      if (validUser) {
+          localStorage.setItem('isLoggedIn', 'true');
+          // Store user info to be used across the app
+          localStorage.setItem('loggedInUser', JSON.stringify({ name: validUser.name, email: validUser.email }));
+          toast({
+            title: 'Login Successful',
+            description: `Welcome back, ${validUser.name}!`,
+          });
+          router.push('/');
+      } else {
+          toast({
+            title: 'Login Failed',
+            description: 'Invalid email or password. Please try again.',
+            variant: 'destructive',
+          });
+      }
+      setIsLoading(false);
+    }, 1500);
   };
 
   return (
@@ -94,7 +104,7 @@ export default function LoginPage() {
                         <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input placeholder="admin@pegadaian.co.id" {...field} />
+                            <Input placeholder="user@pegadaian.co.id" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
