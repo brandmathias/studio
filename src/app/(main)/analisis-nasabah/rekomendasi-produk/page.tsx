@@ -18,6 +18,8 @@ import type { Customer } from '@/types';
 import {
   Loader2,
   Lightbulb,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { recommendProduct, type ProductRecommendationOutput } from '@/ai/flows/product-recommendation';
 import { MOCK_CUSTOMERS_RAW } from '@/app/(main)/analisis-nasabah/prediksi-risiko/page';
@@ -153,16 +155,17 @@ export default function ProductRecommendationPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nasabah</TableHead>
-                  <TableHead>Segmen</TableHead>
                   <TableHead>Total Transaksi (1th)</TableHead>
-                  <TableHead>Terakhir Transaksi</TableHead>
+                  <TableHead>Nilai Pinjaman</TableHead>
+                  <TableHead>Jaminan Terakhir</TableHead>
+                  <TableHead>Pernah Telat?</TableHead>
                   <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {customers.length === 0 ? (
                      <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={6} className="h-24 text-center">
                             Tidak ada data nasabah.
                         </TableCell>
                     </TableRow>
@@ -173,11 +176,22 @@ export default function ProductRecommendationPage() {
                           <div className="font-medium">{customer.name}</div>
                           <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant={customer.segment === 'none' ? 'outline' : 'default'}>{customer.segment === 'none' ? 'Belum Disegmentasi' : customer.segment}</Badge>
-                        </TableCell>
                         <TableCell className="text-center">{customer.transaction_count}</TableCell>
-                        <TableCell className="text-center">{customer.days_since_last_transaction} hari lalu</TableCell>
+                        <TableCell>
+                          {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(customer.loan_value)}
+                        </TableCell>
+                         <TableCell className="max-w-[200px] truncate">{customer.barang_jaminan}</TableCell>
+                        <TableCell>
+                           {customer.has_been_late_before ? (
+                                <span className="flex items-center gap-1 text-destructive">
+                                    <XCircle className="h-4 w-4"/> Ya
+                                </span>
+                           ) : (
+                                <span className="flex items-center gap-1 text-green-600">
+                                    <CheckCircle2 className="h-4 w-4"/> Tidak
+                                </span>
+                           )}
+                        </TableCell>
                         <TableCell>
                            <Button 
                                 size="sm" 
