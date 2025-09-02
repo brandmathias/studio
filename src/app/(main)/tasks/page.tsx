@@ -47,9 +47,15 @@ export default function TasksPage() {
   // Load data from localStorage on mount
   React.useEffect(() => {
     try {
-      const savedData = localStorage.getItem('taskBoardData');
+      const storedUser = localStorage.getItem('loggedInUser');
+      const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
+      const storageKey = `taskBoardData_${upc}`;
+
+      const savedData = localStorage.getItem(storageKey);
       if (savedData) {
         setBoardData(JSON.parse(savedData));
+      } else {
+        setBoardData(initialData); // Use initial data if nothing is stored
       }
     } catch (error) {
       console.error("Failed to parse task board data from localStorage", error);
@@ -60,7 +66,10 @@ export default function TasksPage() {
   // Save data to localStorage whenever it changes
   React.useEffect(() => {
     try {
-      localStorage.setItem('taskBoardData', JSON.stringify(boardData));
+      const storedUser = localStorage.getItem('loggedInUser');
+      const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
+      const storageKey = `taskBoardData_${upc}`;
+      localStorage.setItem(storageKey, JSON.stringify(boardData));
     } catch (error) {
       console.error("Failed to save task board data to localStorage", error);
     }

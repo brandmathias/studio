@@ -89,7 +89,7 @@ const RecommendationDialog = ({ isOpen, onClose, data }: { isOpen: boolean, onCl
 export default function ProductRecommendationPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [customers] = React.useState<Omit<Customer, 'priority' | 'follow_up_status'>[]>(MOCK_CUSTOMERS_RECOMENDATION);
+  const [customers, setCustomers] = React.useState<Omit<Customer, 'priority' | 'follow_up_status'>[]>([]);
   const [isRecommending, setIsRecommending] = React.useState<string | null>(null);
   const [recommendationData, setRecommendationData] = React.useState<ProductRecommendationOutput | null>(null);
 
@@ -97,6 +97,16 @@ export default function ProductRecommendationPage() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
       router.push('/login');
+      return;
+    }
+
+    const storedUser = localStorage.getItem('loggedInUser');
+    const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
+
+    if (upc === 'all') {
+      setCustomers(MOCK_CUSTOMERS_RECOMENDATION);
+    } else {
+      setCustomers(MOCK_CUSTOMERS_RECOMENDATION.filter(c => c.upc === upc));
     }
   }, [router]);
   

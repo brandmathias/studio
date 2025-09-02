@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
-import type { InstallmentCustomer, HistoryEntry } from '@/types';
+import type { InstallmentCustomer, HistoryEntry, Customer } from '@/types';
 import { Input } from '@/components/ui/input';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
@@ -60,12 +60,12 @@ export default function XlsxBroadcastPage() {
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [adminUser, setAdminUser] = React.useState('Admin');
+  const [adminUser, setAdminUser] = React.useState({name: 'Admin', upc: 'all'});
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('loggedInUser');
     if (storedUser) {
-        setAdminUser(JSON.parse(storedUser).name);
+        setAdminUser(JSON.parse(storedUser));
     }
   }, []);
 
@@ -81,6 +81,15 @@ export default function XlsxBroadcastPage() {
     try {
         const customerName = customer.nasabah.split('\n')[0].trim();
         const customerIdentifier = customer.nasabah.split('\n')[1]?.trim() || 'N/A';
+        
+        let upc: Customer['upc'] = 'N/A';
+        const pencairanLower = customer.pencairan.toLowerCase();
+        if (pencairanLower.includes('wan')) {
+            upc = 'Pegadaian Wanea';
+        } else if (pencairanLower.includes('ranotana')) {
+            upc = 'Pegadaian Ranotana';
+        }
+        const storageKey = adminUser.upc === 'all' ? 'broadcastHistory_all' : `broadcastHistory_${upc}`;
 
       const newEntry: HistoryEntry = {
         id: `hist-${Date.now()}-${customer.id}`,
@@ -89,13 +98,13 @@ export default function XlsxBroadcastPage() {
         customerName: customerName,
         customerIdentifier: customerIdentifier,
         status,
-        adminUser: adminUser,
+        adminUser: adminUser.name,
         template: template,
       };
 
-      const history = JSON.parse(localStorage.getItem('broadcastHistory') || '[]');
+      const history = JSON.parse(localStorage.getItem(storageKey) || '[]');
       history.unshift(newEntry); // Add to the beginning
-      localStorage.setItem('broadcastHistory', JSON.stringify(history));
+      localStorage.setItem(storageKey, JSON.stringify(history));
     } catch (error) {
       console.error("Failed to log history:", error);
     }
@@ -132,7 +141,7 @@ export default function XlsxBroadcastPage() {
             // Use { raw: false } to get formatted strings, easier for inconsistent data types
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
-            const customers: InstallmentCustomer[] = json
+            let customers: InstallmentCustomer[] = json
              .map((row: any, index) => ({
                 id: `row-${index}`, // Use row index as a stable key
                 nasabah: String(row[0] || ''),
@@ -154,6 +163,13 @@ export default function XlsxBroadcastPage() {
                 
                 return true;
             });
+            
+             // Filter by UPC if not a super admin
+            if (adminUser.upc !== 'all') {
+                const upcIdentifier = adminUser.upc === 'Pegadaian Wanea' ? 'wan' : 'ranotana';
+                customers = customers.filter(c => c.pencairan.toLowerCase().includes(upcIdentifier));
+            }
+
 
             setImportedData(customers);
              toast({
@@ -216,7 +232,7 @@ export default function XlsxBroadcastPage() {
         let headerLine = `Nasabah ${customer.pencairan.toUpperCase()}`;
         const pencairanLower = customer.pencairan.toLowerCase();
 
-        if (pencairanLower.includes('wane')) {
+        if (pencairanLower.includes('wan')) {
             headerLine = 'Nasabah PEGADAIAN WANEA / TANJUNG BATU';
         } else if (pencairanLower.includes('ranotana')) {
             headerLine = 'Nasabah PEGADAIAN RANOTANA / RANOTANA';
@@ -365,7 +381,7 @@ Terima Kasih`;
         <CardHeader>
           <CardTitle>Panel Angsuran Broadcast</CardTitle>
           <CardDescription>
-            Impor data nasabah dari file .xlsx untuk mengirim notifikasi jatuh tempo angsuran. Pastikan urutan kolom di file Anda sesuai dengan tabel di bawah.
+            Impor data nasabah dari file .xlsx untuk mengirim notifikasi jatuh tempo angsuran. Data akan otomatis difilter berdasarkan UPC Anda.
           </CardDescription>
         </CardHeader>
         <CardContent>

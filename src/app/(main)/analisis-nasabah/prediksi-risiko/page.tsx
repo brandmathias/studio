@@ -99,7 +99,7 @@ const MOCK_CUSTOMERS: Omit<Customer, 'priority' | 'follow_up_status'>[] = MOCK_C
 export default function PrediksiRisikoPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [customers] = React.useState<Omit<Customer, 'priority' | 'follow_up_status'>[]>(MOCK_CUSTOMERS);
+  const [customers, setCustomers] = React.useState<Omit<Customer, 'priority' | 'follow_up_status'>[]>([]);
   const [isPredictingRisk, setIsPredictingRisk] = React.useState<string | null>(null);
   const [auctionRiskData, setAuctionRiskData] = React.useState<PredictAuctionRiskOutput | null>(null);
 
@@ -107,6 +107,16 @@ export default function PrediksiRisikoPage() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
       router.push('/login');
+      return;
+    }
+    
+    const storedUser = localStorage.getItem('loggedInUser');
+    const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
+
+    if (upc === 'all') {
+      setCustomers(MOCK_CUSTOMERS);
+    } else {
+      setCustomers(MOCK_CUSTOMERS.filter(c => c.upc === upc));
     }
   }, [router]);
   

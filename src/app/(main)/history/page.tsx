@@ -13,7 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Filter, Trash2 } from 'lucide-react';
-import type { HistoryEntry } from '@/types';
+import type { HistoryEntry, Customer } from '@/types';
 import { format, isSameDay, startOfToday } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -32,12 +32,18 @@ export default function HistoryPage() {
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>(startOfToday());
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast'>('all');
+  const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc']>('all');
 
   React.useEffect(() => {
     try {
-      const storedHistory = localStorage.getItem('broadcastHistory');
+      const storedUser = localStorage.getItem('loggedInUser');
+      const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
+      setUserUpc(upc);
+
+      const storageKey = upc === 'all' ? 'broadcastHistory_all' : `broadcastHistory_${upc}`;
+      const storedHistory = localStorage.getItem(storageKey);
+
       if (storedHistory) {
-        // Sort history by most recent first
         const parsedHistory = JSON.parse(storedHistory);
         parsedHistory.sort((a: HistoryEntry, b: HistoryEntry) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         setHistory(parsedHistory);
@@ -56,7 +62,8 @@ export default function HistoryPage() {
   }, [history, dateFilter, typeFilter]);
 
   const clearHistory = () => {
-    localStorage.removeItem('broadcastHistory');
+    const storageKey = userUpc === 'all' ? 'broadcastHistory_all' : `broadcastHistory_${userUpc}`;
+    localStorage.removeItem(storageKey);
     setHistory([]);
   };
   
@@ -80,7 +87,7 @@ export default function HistoryPage() {
         <CardHeader>
           <CardTitle>Log Aktivitas</CardTitle>
           <CardDescription>
-            Tabel ini menampilkan semua riwayat aktivitas broadcast yang telah dilakukan.
+            Tabel ini menampilkan semua riwayat aktivitas broadcast yang telah dilakukan oleh admin {userUpc === 'all' ? 'semua cabang' : userUpc}.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -188,5 +195,3 @@ export default function HistoryPage() {
     </main>
   );
 }
-
-    

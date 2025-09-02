@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
-import type { BroadcastCustomer, HistoryEntry } from '@/types';
+import type { BroadcastCustomer, HistoryEntry, Customer } from '@/types';
 import { Input } from '@/components/ui/input';
 import { parsePdf } from './actions';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
@@ -54,7 +54,7 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
-const getUpcFromId = (id: string): 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N/A' => {
+const getUpcFromId = (id: string): Customer['upc'] => {
   const prefix = id.substring(0, 5);
   if (prefix === '11787') {
     return 'Pegadaian Wanea';
@@ -75,12 +75,12 @@ export default function PdfBroadcastPage() {
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [adminUser, setAdminUser] = React.useState('Admin');
+  const [adminUser, setAdminUser] = React.useState({name: 'Admin', upc: 'all'});
 
   React.useEffect(() => {
     const storedUser = localStorage.getItem('loggedInUser');
     if (storedUser) {
-        setAdminUser(JSON.parse(storedUser).name);
+        setAdminUser(JSON.parse(storedUser));
     }
   }, []);
 
@@ -93,6 +93,9 @@ export default function PdfBroadcastPage() {
 
   const logHistory = (customer: BroadcastCustomer, status: ActionStatus, template: NotificationTemplate) => {
     try {
+      const upc = getUpcFromId(customer.sbg_number);
+      const storageKey = adminUser.upc === 'all' ? 'broadcastHistory_all' : `broadcastHistory_${upc}`;
+
       const newEntry: HistoryEntry = {
         id: `hist-${Date.now()}-${customer.sbg_number}`,
         timestamp: new Date().toISOString(),
@@ -100,13 +103,13 @@ export default function PdfBroadcastPage() {
         customerName: customer.name,
         customerIdentifier: customer.sbg_number,
         status,
-        adminUser: adminUser,
+        adminUser: adminUser.name,
         template: template,
       };
 
-      const history = JSON.parse(localStorage.getItem('broadcastHistory') || '[]');
+      const history = JSON.parse(localStorage.getItem(storageKey) || '[]');
       history.unshift(newEntry); // Add to the beginning
-      localStorage.setItem('broadcastHistory', JSON.stringify(history));
+      localStorage.setItem(storageKey, JSON.stringify(history));
     } catch (error) {
       console.error("Failed to log history:", error);
     }
@@ -137,11 +140,19 @@ export default function PdfBroadcastPage() {
     formData.append('pdf-file', file);
 
     try {
-        const results = await parsePdf(formData);
+        let results = await parsePdf(formData);
+        
+        // If the user is not a super-admin, filter by their UPC
+        if (adminUser.upc !== 'all') {
+            results = results.filter(c => getUpcFromId(c.sbg_number) === adminUser.upc);
+        }
+
         if (results.length === 0) {
             toast({
                 title: 'No Data Extracted',
-                description: 'The AI could not find any customer data in the PDF.',
+                description: adminUser.upc === 'all' 
+                    ? 'The AI could not find any customer data in the PDF.'
+                    : `No data for ${adminUser.upc} found in the PDF.`,
                 variant: 'destructive',
             });
         } else {
@@ -352,7 +363,7 @@ Terima Kasih`;
         <CardHeader>
           <CardTitle>Panel Gadaian Broadcast</CardTitle>
           <CardDescription>
-            Impor data nasabah langsung dari file PDF untuk mengirim notifikasi massal.
+            Impor data nasabah langsung dari file PDF untuk mengirim notifikasi massal. Data akan otomatis difilter berdasarkan UPC Anda.
           </CardDescription>
         </CardHeader>
         <CardContent>

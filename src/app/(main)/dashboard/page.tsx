@@ -59,7 +59,6 @@ import {
   CalendarPlus,
   Mic,
   ClipboardCopy,
-  ShieldAlert,
   Trash2,
   CheckCircle2,
   LayoutGrid,
@@ -69,7 +68,7 @@ import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { prioritizeCustomer } from './actions';
-import { predictAuctionRisk, type PredictAuctionRiskOutput } from '@/ai/flows/auction-risk-predictor';
+import type { PredictAuctionRiskOutput } from '@/ai/flows/auction-risk-predictor';
 import { Input } from '@/components/ui/input';
 import KanbanBoard from '@/components/KanbanBoard';
 
@@ -138,7 +137,7 @@ const MOCK_CUSTOMERS_RAW: Omit<Customer, 'upc' | 'segment' | 'follow_up_status'>
   },
 ];
 
-const MOCK_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
+const INITIAL_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
   ...c,
   upc: getUpcFromId(c.id),
   segment: 'none',
@@ -151,7 +150,8 @@ type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang
 export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [customers, setCustomers] = React.useState<Customer[]>(MOCK_CUSTOMERS);
+  const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc']>('all');
+  const [customers, setCustomers] = React.useState<Customer[]>([]);
   const [selectedCustomers, setSelectedCustomers] = React.useState<Set<string>>(new Set());
   const [priorityFilter, setPriorityFilter] = React.useState('all');
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
@@ -172,38 +172,60 @@ export default function DashboardPage() {
   const [tasks, setTasks] = React.useState<ScheduledTask[]>([]);
   const customerRowsRef = React.useRef<Record<string, HTMLTableRowElement | null>>({});
 
-  // Load tasks from localStorage on initial render
-  React.useEffect(() => {
-    try {
-      const storedTasks = localStorage.getItem('gadaiAlertTasks');
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks));
-      }
-    } catch (error) {
-      console.error("Failed to parse tasks from localStorage", error);
-      setTasks([]);
-    }
-  }, []);
-
-  // Save tasks to localStorage whenever they change
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('gadaiAlertTasks', JSON.stringify(tasks));
-    } catch (error) {
-      console.error("Failed to save tasks to localStorage", error);
-    }
-  }, [tasks]);
-
-
+  // Auth and data loading effect
   React.useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) {
       router.push('/login');
+      return;
+    }
+
+    try {
+      const storedUser = localStorage.getItem('loggedInUser');
+      const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
+      setUserUpc(upc);
+
+      const storageKey = `gadaiAlert_customers_${upc}`;
+      const storedCustomers = localStorage.getItem(storageKey);
+      
+      if (storedCustomers) {
+        setCustomers(JSON.parse(storedCustomers));
+      } else {
+        // Filter initial data for the specific UPC if no data is in storage
+        const initialFilteredCustomers = upc === 'all' 
+            ? INITIAL_CUSTOMERS 
+            : INITIAL_CUSTOMERS.filter(c => c.upc === upc);
+        setCustomers(initialFilteredCustomers);
+      }
+      
+      const storedTasks = localStorage.getItem('gadaiAlertTasks');
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+
+    } catch (error) {
+      console.error("Failed to process data from localStorage", error);
+      setCustomers(INITIAL_CUSTOMERS); // fallback
+      setTasks([]);
     }
   }, [router]);
+
+  // Save customers and tasks to localStorage whenever they change
+  React.useEffect(() => {
+    try {
+        if (customers.length > 0) {
+            const storageKey = `gadaiAlert_customers_${userUpc}`;
+            localStorage.setItem(storageKey, JSON.stringify(customers));
+        }
+        localStorage.setItem('gadaiAlertTasks', JSON.stringify(tasks));
+    } catch (error) {
+        console.error("Failed to save data to localStorage", error);
+    }
+  }, [customers, tasks, userUpc]);
   
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('loggedInUser');
     router.push('/login');
   };
 

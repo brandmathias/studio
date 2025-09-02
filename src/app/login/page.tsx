@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Scale, Loader2 } from 'lucide-react';
 import {
@@ -36,10 +35,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const allowedAccounts = [
-  { email: 'admin.wanena@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea' },
-  { email: 'admin.ranotana@pegadaian.co.id', password: 'UpcRanotana*0', name: 'Admin Ranotana' },
-  { email: 'brandomathiasz13@gmail.com', password: 'Brandomz13#', name: 'Brando Mathiasz' },
-  { email: 'saviopalendeng506@gmail.com', password: 'Saviohp506', name: 'Savio Palendeng' },
+  { email: 'admin.wanena@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea' },
+  { email: 'admin.ranotana@pegadaian.co.id', password: 'UpcRanotana*0', name: 'Admin Ranotana', upc: 'Pegadaian Ranotana' },
+  { email: 'brandomathiasz13@gmail.com', password: 'Brandomz13#', name: 'Brando Mathiasz', upc: 'all' },
+  { email: 'saviopalendeng506@gmail.com', password: 'Saviohp506', name: 'Savio Palendeng', upc: 'all' },
 ];
 
 
@@ -66,8 +65,8 @@ export default function LoginPage() {
     setTimeout(() => {
       if (validUser) {
           localStorage.setItem('isLoggedIn', 'true');
-          // Store user info to be used across the app
-          localStorage.setItem('loggedInUser', JSON.stringify({ name: validUser.name, email: validUser.email }));
+          // Store user info, including their UPC for data scoping
+          localStorage.setItem('loggedInUser', JSON.stringify({ name: validUser.name, email: validUser.email, upc: validUser.upc }));
           toast({
             title: 'Login Successful',
             description: `Welcome back, ${validUser.name}!`,
