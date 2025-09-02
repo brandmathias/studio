@@ -110,6 +110,8 @@ export default function ProductRecommendationPage() {
         transaction_count: customer.transaction_count,
         has_been_late_before: customer.has_been_late_before,
         days_since_last_transaction: customer.days_since_last_transaction,
+        // NOTE: This is a placeholder value. In a real application, you'd calculate this.
+        riwayat_pelunasan: customer.has_been_late_before ? 'Lambat' : 'Tepat Waktu',
         segment: customer.segment,
         barang_jaminan: customer.barang_jaminan,
         transaction_type: customer.transaction_type,
