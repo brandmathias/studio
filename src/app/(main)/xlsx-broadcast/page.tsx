@@ -157,11 +157,9 @@ export default function XlsxBroadcastPage() {
                 kunjungan_terakhir: row[10] || 'N/A'
             }))
             .filter(c => {
-                const produkText = c.produk.trim();
-                // A valid row MUST have a product and a positive loan value
-                if (!produkText || c.kewajiban <= 0) return false;
-                
-                return true;
+                 // A valid row MUST have a customer name/ID (nasabah) and a product name (produk).
+                 // This is a more robust check than just looking at kewajiban.
+                return c.nasabah.trim() && c.produk.trim();
             });
             
              // Filter by UPC if not a super admin
