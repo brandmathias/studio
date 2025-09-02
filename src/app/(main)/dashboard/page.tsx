@@ -43,7 +43,6 @@ import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import AuctionRiskDialog from '@/components/AuctionRiskDialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import Chatbot from '@/components/Chatbot';
 import {
   Scale,
   LogOut,
@@ -56,7 +55,6 @@ import {
   Send,
   Users,
   BellRing,
-  MessageSquare,
   CalendarPlus,
   Mic,
   ClipboardCopy,
@@ -158,7 +156,6 @@ export default function DashboardPage() {
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
   const [notificationsSent, setNotificationsSent] = React.useState(0);
-  const [isChatbotOpen, setIsChatbotOpen] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<'table' | 'kanban'>('table');
   
   const [isPredictingRisk, setIsPredictingRisk] = React.useState<string | null>(null);
@@ -949,20 +946,6 @@ Terima Kasih`;
             </CardContent>
         </Card>
       </main>
-
-       {/* Chatbot Launcher */}
-       <div className="fixed bottom-4 right-4 z-50">
-          <Button
-            size="icon"
-            className="rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90"
-            onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-          >
-            <MessageSquare className="h-6 w-6" />
-          </Button>
-        </div>
-
-        {/* Chatbot Window */}
-        {isChatbotOpen && <Chatbot onClose={() => setIsChatbotOpen(false)} />}
     </div>
   );
 }
