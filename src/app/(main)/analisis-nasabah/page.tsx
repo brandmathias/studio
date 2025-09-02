@@ -156,7 +156,7 @@ export default function AnalisisNasabahPage() {
         <CardHeader>
           <CardTitle>Prediksi Risiko Lelang</CardTitle>
           <CardDescription>
-            Gunakan AI untuk menganalisis dan memprediksi kemungkinan barang jaminan nasabah dilelang berdasarkan data historis dan transaksional. Fitur ini hanya aktif untuk nasabah yang telah melewati tanggal jatuh tempo.
+            Gunakan AI untuk menganalisis dan memprediksi kemungkinan barang jaminan nasabah dilelang berdasarkan data transaksional per No. SBG. Fitur ini hanya aktif untuk nasabah yang telah melewati tanggal jatuh tempo.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -165,6 +165,7 @@ export default function AnalisisNasabahPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nasabah</TableHead>
+                  <TableHead>No. SBG</TableHead>
                   <TableHead>Tgl Jatuh Tempo</TableHead>
                   <TableHead>Hari Telat</TableHead>
                   <TableHead>Nilai Pinjaman</TableHead>
@@ -175,7 +176,7 @@ export default function AnalisisNasabahPage() {
               <TableBody>
                 {customers.length === 0 ? (
                      <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
+                        <TableCell colSpan={7} className="h-24 text-center">
                             Tidak ada data nasabah.
                         </TableCell>
                     </TableRow>
@@ -185,6 +186,9 @@ export default function AnalisisNasabahPage() {
                         <TableCell>
                           <div className="font-medium">{customer.name}</div>
                           <div className="text-sm text-muted-foreground">{customer.phone_number}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-mono">{customer.id}</div>
                         </TableCell>
                         <TableCell>{format(new Date(customer.due_date), 'dd MMMM yyyy')}</TableCell>
                         <TableCell className="font-bold">{Math.max(0, differenceInDays(new Date(), new Date(customer.due_date)))} hari</TableCell>
