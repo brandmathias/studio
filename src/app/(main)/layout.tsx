@@ -220,7 +220,20 @@ export default function MainLayout({
           </DropdownMenu>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+             <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
+              <a
+                href="#"
+                className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
+              >
+                <Scale className="h-6 w-6" />
+                <span className="font-headline">GadaiAlert</span>
+              </a>
+            </nav>
+        </header>
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }
