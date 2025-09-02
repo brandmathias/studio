@@ -71,10 +71,11 @@ import {
   Megaphone,
   Star,
   UserCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
 import { badgeVariants } from '@/components/ui/badge';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { prioritizeCustomer } from './actions';
 import type { PredictAuctionRiskOutput } from '@/ai/flows/auction-risk-predictor';
 import { Input } from '@/components/ui/input';
@@ -190,7 +191,7 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         phone: "(0431) 987-654",
         operatingHours: "Senin - Sabtu: 08:00 - 16:00",
         description: "Spesialisasi dalam layanan angsuran kendaraan dan gadai barang elektronik.",
-        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15954.073843513346!2d124.82583315!3d1.4646738499999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
+        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
         announcement: "Jangan lupa untuk mengikuti training produk baru minggu depan.",
         featuredProduct: "Pinjaman Modal Produktif",
         staff: {
@@ -239,7 +240,6 @@ export default function DashboardPage() {
   const [priorityFilter, setPriorityFilter] = React.useState('all');
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [isPrioritizing, setIsPrioritizing] = React.useState(false);
-  const [notificationsSent, setNotificationsSent] = React.useState(0);
   const [viewMode, setViewMode] = React.useState<'table' | 'kanban'>('table');
   
   const [isPredictingRisk, setIsPredictingRisk] = React.useState<string | null>(null);
@@ -459,7 +459,6 @@ Terima Kasih`;
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
-    setNotificationsSent(prev => prev + 1);
   };
   
   const handleGenerateVoicenote = async (customer: Customer, template: NotificationTemplate) => {
@@ -592,6 +591,28 @@ Terima Kasih`;
       'Potensi Churn': 'outline',
       'none': 'outline',
   };
+
+  const overdueCustomersCount = React.useMemo(() => {
+      return customers.filter(c => isPast(new Date(c.due_date))).length;
+  }, [customers]);
+
+  const followUpStatusData = React.useMemo(() => {
+      const statusCounts = customers.reduce((acc, customer) => {
+          const status = customer.follow_up_status;
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+      }, {} as Record<Customer['follow_up_status'], number>);
+
+      const data = [
+          { name: 'Baru', value: statusCounts['baru'] || 0, fill: 'hsl(var(--chart-1))'},
+          { name: 'Dihubungi', value: statusCounts['dihubungi'] || 0, fill: 'hsl(var(--chart-2))' },
+          { name: 'Janji Bayar', value: statusCounts['janji-bayar'] || 0, fill: 'hsl(var(--chart-3))' },
+          { name: 'Tdk Respons', value: statusCounts['tidak-merespons'] || 0, fill: 'hsl(var(--chart-4))' },
+          { name: 'Selesai', value: statusCounts['selesai'] || 0, fill: 'hsl(var(--chart-5))' },
+      ];
+      return data.filter(d => d.value > 0);
+  }, [customers]);
+
   
   const ReminderPopoverContent = ({ customerId, customerName }: { customerId: string, customerName: string }) => {
     const [date, setDate] = React.useState<Date | undefined>();
@@ -636,7 +657,6 @@ Terima Kasih`;
             customerName={activeVoicenote.customerName}
             onConfirm={() => {
                 window.open(activeVoicenote.whatsappUrl, '_blank');
-                setNotificationsSent(prev => prev + 1);
             }}
           />
         )}
@@ -728,17 +748,77 @@ Terima Kasih`;
               </CardContent>
           </Card>
 
-          {/* Total Customers Card */}
-          <Card className="lg:col-span-1 flex flex-col">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Nasabah</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                  <div className="text-2xl font-bold">{customers.length}</div>
-                  <p className="text-xs text-muted-foreground">Jumlah nasabah aktif di {userUpc === 'all' ? 'semua cabang' : profileData.name}</p>
-              </CardContent>
-          </Card>
+          <div className="lg:col-span-1 space-y-6">
+              {/* Total Customers Card */}
+              <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Nasabah</CardTitle>
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                      <div className="text-2xl font-bold">{customers.length}</div>
+                      <p className="text-xs text-muted-foreground">Jumlah nasabah aktif di {userUpc === 'all' ? 'semua cabang' : profileData.name}</p>
+                  </CardContent>
+              </Card>
+
+              {/* Overdue Customers Card */}
+              <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Nasabah Lewat Jatuh Tempo</CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                  </CardHeader>
+                  <CardContent>
+                      <div className="text-2xl font-bold text-destructive">{overdueCustomersCount}</div>
+                      <p className="text-xs text-muted-foreground">Nasabah yang membutuhkan perhatian segera.</p>
+                  </CardContent>
+              </Card>
+
+              {/* Follow-up Status Card */}
+              <Card>
+                  <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">Ringkasan Status Follow-up</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                       {followUpStatusData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={150}>
+                            <PieChart>
+                                <Pie 
+                                    data={followUpStatusData} 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    outerRadius={60} 
+                                    dataKey="value"
+                                    labelLine={false}
+                                    label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                                        const RADIAN = Math.PI / 180;
+                                        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                                        return (
+                                            <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                                            {`${(percent * 100).toFixed(0)}%`}
+                                            </text>
+                                        );
+                                    }}
+                                >
+                                </Pie>
+                                <Tooltip 
+                                     contentStyle={{
+                                        backgroundColor: 'hsl(var(--background))',
+                                        borderColor: 'hsl(var(--border))',
+                                    }}
+                                />
+                                <Legend iconSize={10} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                       ) : (
+                          <div className="flex items-center justify-center h-[150px] text-muted-foreground text-sm">
+                            Tidak ada data follow-up.
+                          </div>
+                       )}
+                  </CardContent>
+              </Card>
+          </div>
         </div>
         
         {userUpc !== 'all' && (
@@ -1001,3 +1081,4 @@ Terima Kasih`;
     
 
     
+
