@@ -641,9 +641,9 @@ Terima Kasih`;
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-               <DropdownMenuItem onClick={() => router.push('/tasks')}>
-                <ClipboardList className="mr-2 h-4 w-4" />
-                <span>Lacak Tugas</span>
+               <DropdownMenuItem onClick={() => router.push('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Profil</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
