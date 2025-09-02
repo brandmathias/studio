@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Building, LogOut, Upload, Save } from 'lucide-react';
+import { User, Mail, Building, LogOut, Upload, Save, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 
@@ -91,6 +91,32 @@ export default function ProfilePage() {
     }
   };
 
+  const handleRemovePhoto = () => {
+    if (!user) return;
+    // Create a new object without the avatar property
+    const { avatar, ...userWithoutAvatar } = user;
+
+    try {
+        localStorage.setItem('loggedInUser', JSON.stringify(userWithoutAvatar));
+        setUser(userWithoutAvatar);
+        setAvatarPreview(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        window.dispatchEvent(new Event('storage'));
+        toast({
+            title: "Foto Profil Dihapus",
+            description: "Foto profil Anda telah berhasil dihapus.",
+        });
+    } catch (error) {
+        console.error("Error removing photo from localStorage", error);
+        toast({
+            title: "Gagal Menghapus Foto",
+            description: "Tidak dapat menghapus foto profil.",
+            variant: "destructive",
+        });
+    }
+  };
+
   if (!user) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center p-4">
@@ -104,18 +130,32 @@ export default function ProfilePage() {
       <div className="w-full max-w-md">
         <Card className="shadow-lg">
           <CardHeader className="items-center text-center">
-             <div className="relative">
+             <div className="relative group">
                 <Avatar className="h-24 w-24 mb-4">
                     <AvatarImage src={avatarPreview || `https://placehold.co/100x100`} alt={user.name} />
                     <AvatarFallback className="text-3xl">{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <Button 
-                    size="icon" 
-                    className="absolute bottom-4 right-0 rounded-full h-8 w-8"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <Upload className="h-4 w-4" />
-                </Button>
+                <div className="absolute bottom-4 right-0 flex items-center gap-2">
+                    <Button 
+                        size="icon" 
+                        className="rounded-full h-8 w-8"
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Ganti foto profil"
+                    >
+                        <Upload className="h-4 w-4" />
+                    </Button>
+                    {avatarPreview && (
+                         <Button 
+                            size="icon" 
+                            variant="destructive"
+                            className="rounded-full h-8 w-8"
+                            onClick={handleRemovePhoto}
+                            title="Hapus foto profil"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
                 <Input 
                     type="file"
                     ref={fileInputRef}
