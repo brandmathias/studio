@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -121,6 +121,17 @@ export default function MainLayout({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+            </SidebarMenuItem>
+            
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => router.push('/analisis-nasabah')}
+                isActive={pathname.startsWith('/analisis-nasabah')}
+                tooltip="Analisis Nasabah"
+              >
+                <BarChart3 />
+                <span>Analisis Nasabah</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
             
             <SidebarMenuItem>

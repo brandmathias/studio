@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -245,35 +246,6 @@ export default function DashboardPage() {
       });
     } finally {
       setIsPrioritizing(false);
-    }
-  };
-
-  const handlePredictRisk = async (customer: Customer) => {
-    setIsPredictingRisk(customer.id);
-    toast({
-      title: 'Menganalisis Risiko Lelang...',
-      description: `AI sedang memprediksi risiko untuk ${customer.name}.`,
-    });
-    try {
-      const daysLate = Math.max(0, differenceInDays(new Date(), new Date(customer.due_date)));
-      const result = await predictAuctionRisk({
-        loan_value: customer.loan_value,
-        days_late: daysLate,
-        has_been_late_before: customer.has_been_late_before,
-        segment: customer.segment,
-        barang_jaminan: customer.barang_jaminan,
-        transaction_count: customer.transaction_count,
-      });
-      setAuctionRiskData(result);
-    } catch (error) {
-      console.error('Auction risk prediction failed:', error);
-      toast({
-        title: 'Gagal Memprediksi',
-        description: 'Terjadi kesalahan saat menganalisis risiko. Silakan coba lagi.',
-        variant: 'destructive',
-      });
-    } finally {
-        setIsPredictingRisk(null);
     }
   };
   
@@ -918,16 +890,6 @@ Terima Kasih`;
                                             </PopoverTrigger>
                                             <ReminderPopoverContent customerId={customer.id} customerName={customer.name} />
                                         </Popover>
-                                        
-                                         <Button 
-                                            size="sm" 
-                                            variant="outline"
-                                            onClick={() => handlePredictRisk(customer)}
-                                            disabled={isPredictingRisk === customer.id || !isPast(new Date(customer.due_date))}
-                                            title={!isPast(new Date(customer.due_date)) ? "Hanya untuk nasabah yang sudah lewat jatuh tempo" : "Prediksi Risiko Lelang"}
-                                          >
-                                            {isPredictingRisk === customer.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldAlert className="h-4 w-4" />}
-                                        </Button>
                                       </div>
                                     </TableCell>
                                 </TableRow>
