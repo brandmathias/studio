@@ -6,9 +6,16 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Building, LogOut, Upload, Save, Trash2 } from 'lucide-react';
+import { User, Mail, Building, LogOut, Save, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 interface UserProfile {
   name: string;
@@ -136,25 +143,27 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-3xl">{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="absolute bottom-4 right-0 flex items-center gap-2">
-                    <Button 
-                        size="icon" 
-                        className="rounded-full h-8 w-8"
-                        onClick={() => fileInputRef.current?.click()}
-                        title="Ganti foto profil"
-                    >
-                        <Upload className="h-4 w-4" />
-                    </Button>
-                    {avatarPreview && (
-                         <Button 
-                            size="icon" 
-                            variant="destructive"
-                            className="rounded-full h-8 w-8"
-                            onClick={handleRemovePhoto}
-                            title="Hapus foto profil"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    )}
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button 
+                                size="icon" 
+                                className="rounded-full h-8 w-8"
+                                title="Ubah foto profil"
+                            >
+                                <Camera className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                             <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                                Ubah Foto
+                            </DropdownMenuItem>
+                            {avatarPreview && (
+                                <DropdownMenuItem onClick={handleRemovePhoto} className="text-destructive focus:text-destructive">
+                                    Hapus Foto
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                     </DropdownMenu>
                 </div>
                 <Input 
                     type="file"
