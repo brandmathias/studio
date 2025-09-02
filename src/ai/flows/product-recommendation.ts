@@ -24,14 +24,14 @@ const ProductRecommendationInputSchema = z.object({
 export type ProductRecommendationInput = z.infer<typeof ProductRecommendationInputSchema>;
 
 const RecommendationSchema = z.object({
-    product_name: z.string().describe("The specific name of the recommended Pegadaian product (e.g., 'Tabungan Emas', 'Cicil Emas', 'Gadai Efek')."),
-    product_category: z.enum(['Simpanan', 'Cicilan', 'Pinjaman', 'Lainnya']).describe("The general category of the product."),
-    reasoning: z.string().describe("A concise, personalized, one-sentence explanation of why this product is being recommended to this specific customer.")
+    product_name: z.string().describe("Nama spesifik dari produk Pegadaian yang direkomendasikan (contoh: 'Tabungan Emas', 'Cicil Emas', 'Gadai Efek')."),
+    product_category: z.enum(['Simpanan', 'Cicilan', 'Pinjaman', 'Lainnya']).describe("Kategori umum dari produk."),
+    reasoning: z.string().describe("Penjelasan singkat, personal, dan dalam satu kalimat mengapa produk ini direkomendasikan untuk nasabah ini.")
 });
 
 const ProductRecommendationOutputSchema = z.object({
-  recommendations: z.array(RecommendationSchema).min(1).max(3).describe('A list of 1 to 3 personalized product recommendations.'),
-  summary: z.string().describe('A brief, one-sentence summary of the customer\'s financial profile and needs based on the input data.')
+  recommendations: z.array(RecommendationSchema).min(1).max(3).describe('Daftar 1 hingga 3 rekomendasi produk yang dipersonalisasi.'),
+  summary: z.string().describe('Ringkasan singkat satu kalimat mengenai profil dan kebutuhan finansial nasabah berdasarkan data yang diberikan.')
 });
 export type ProductRecommendationOutput = z.infer<typeof ProductRecommendationOutputSchema>;
 
@@ -45,34 +45,36 @@ const prompt = ai.definePrompt({
   name: 'recommendProductPrompt',
   input: { schema: ProductRecommendationInputSchema },
   output: { schema: ProductRecommendationOutputSchema },
-  prompt: `You are an expert financial advisor for PT Pegadaian. Your task is to analyze a customer's profile and recommend the most suitable products for them.
+  prompt: `Anda adalah seorang penasihat keuangan ahli untuk PT Pegadaian. Tugas Anda adalah menganalisis profil nasabah dan merekomendasikan produk yang paling sesuai untuk mereka.
 
-Analyze the following customer data:
-- Most Recent Loan Value: {{{loan_value}}} IDR
-- Transaction Count (1yr): {{{transaction_count}}}
-- History of Late Payments: {{{has_been_late_before}}}
-- Days Since Last Transaction: {{{days_since_last_transaction}}}
-- Customer Segment: {{{segment}}}
-- Last Collateral: "{{{barang_jaminan}}}"
-- Last Transaction Type: "{{{transaction_type}}}"
+Analisis data nasabah berikut:
+- Nilai Pinjaman Terakhir: {{{loan_value}}} IDR
+- Jumlah Transaksi (1 tahun): {{{transaction_count}}}
+- Riwayat Terlambat Bayar: {{{has_been_late_before}}}
+- Hari Sejak Transaksi Terakhir: {{{days_since_last_transaction}}}
+- Segmen Nasabah: {{{segment}}}
+- Jaminan Terakhir: "{{{barang_jaminan}}}"
+- Jenis Transaksi Terakhir: "{{{transaction_type}}}"
 
-Based on this data, perform the following:
-1.  **Analyze Customer Profile**: Create a brief, one-sentence summary of the customer's likely financial situation and needs. Are they a high-value regular customer? Are they an entrepreneur needing capital? Are they someone who struggles with payments? This will be your 'summary'.
+Berdasarkan data ini, lakukan hal berikut:
+1.  **Analisis Profil Nasabah**: Buat ringkasan singkat dalam satu kalimat mengenai kemungkinan situasi dan kebutuhan finansial nasabah. Apakah mereka nasabah reguler bernilai tinggi? Apakah mereka seorang pengusaha yang membutuhkan modal? Apakah mereka seseorang yang kesulitan membayar? Ini akan menjadi 'summary' Anda.
 
-2.  **Generate Recommendations**: Provide 1 to 3 highly personalized product recommendations. For each recommendation, provide:
-    - **product_name**: The specific Pegadaian product name.
-    - **product_category**: The product's category.
-    - **reasoning**: A compelling, short, and personalized reason. Connect the recommendation directly to their data.
+2.  **Hasilkan Rekomendasi**: Berikan 1 hingga 3 rekomendasi produk yang sangat dipersonalisasi. Untuk setiap rekomendasi, berikan:
+    - **product_name**: Nama produk Pegadaian yang spesifik.
+    - **product_category**: Kategori produk.
+    - **reasoning**: Alasan yang meyakinkan, singkat, dan personal. Hubungkan rekomendasi secara langsung dengan data mereka.
 
-**Product Recommendation Logic:**
-- **For High-Value/Platinum Customers** (high transaction count, high loan value, no late payments): Recommend investment products like 'Tabungan Emas' for asset growth or 'Gadai Efek' if their collateral suggests they are an investor.
-- **For Business Owners** (indicated by collateral like 'Laptop', 'Kamera', 'Motor' and regular 'gadai' transactions): Recommend 'Pinjaman Modal Produktif' or 'Cicil Kendaraan' to support their business growth.
-- **For Customers who are 'Potensi Churn'** (few transactions, long time since last transaction): Recommend lighter products to re-engage them, like 'Cicil Emas' with a small grammage, to remind them of Pegadaian's services.
-- **For Customers who are 'Berisiko'** (history of late payments): Avoid recommending more loans. Instead, recommend 'Tabungan Emas' as a way to build a financial safety net for future payments.
-- **For Customers with Gold Collateral**: They are prime candidates for 'Tabungan Emas' or 'Cicil Emas'.
-- **For Salaried Employees** (regular, on-time payments, moderate loan value): Recommend 'Cicil Emas' for long-term investment or 'Gadai Tabungan Emas' for emergency funds without selling their savings.
+**Logika Rekomendasi Produk:**
+- **Untuk Nasabah Bernilai Tinggi/Platinum** (jumlah transaksi tinggi, nilai pinjaman tinggi, tidak ada riwayat terlambat): Rekomendasikan produk investasi seperti 'Tabungan Emas' untuk pertumbuhan aset atau 'Gadai Efek' jika jaminan mereka menunjukkan bahwa mereka adalah seorang investor.
+- **Untuk Pemilik Usaha** (ditunjukkan oleh jaminan seperti 'Laptop', 'Kamera', 'Motor' dan transaksi 'gadai' reguler): Rekomendasikan 'Pinjaman Modal Produktif' atau 'Cicil Kendaraan' untuk mendukung pertumbuhan usaha mereka.
+- **Untuk Nasabah 'Potensi Churn'** (sedikit transaksi, sudah lama tidak bertransaksi): Rekomendasikan produk yang lebih ringan untuk melibatkan mereka kembali, seperti 'Cicil Emas' dengan gramasi kecil, untuk mengingatkan mereka tentang layanan Pegadaian.
+- **Untuk Nasabah 'Berisiko'** (memiliki riwayat terlambat bayar): Hindari merekomendasikan lebih banyak pinjaman. Sebaliknya, rekomendasikan 'Tabungan Emas' sebagai cara untuk membangun jaring pengaman finansial untuk pembayaran di masa depan.
+- **Untuk Nasabah dengan Jaminan Emas**: Mereka adalah kandidat utama untuk 'Tabungan Emas' atau 'Cicil Emas'.
+- **Untuk Karyawan** (pembayaran rutin, tepat waktu, nilai pinjaman sedang): Rekomendasikan 'Cicil Emas' untuk investasi jangka panjang atau 'Gadai Tabungan Emas' untuk dana darurat tanpa menjual tabungan mereka.
 
-Return the result in the specified JSON format.`,
+**PENTING**: Semua output teks (reasoning, summary) HARUS dalam Bahasa Indonesia.
+
+Kembalikan hasilnya dalam format JSON yang ditentukan.`,
 });
 
 const recommendProductFlow = ai.defineFlow(

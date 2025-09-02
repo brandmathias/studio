@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -22,11 +23,11 @@ const PredictAuctionRiskInputSchema = z.object({
 export type PredictAuctionRiskInput = z.infer<typeof PredictAuctionRiskInputSchema>;
 
 const PredictAuctionRiskOutputSchema = z.object({
-  risk_percentage: z.number().min(0).max(100).describe('The probability (0-100%) that the item will go to auction.'),
-  risk_level: z.enum(['Rendah', 'Sedang', 'Tinggi', 'Sangat Tinggi']).describe('A categorical risk level.'),
-  positive_factors: z.array(z.string()).describe('Factors that decrease the auction risk.'),
-  negative_factors: z.array(z.string()).describe('Factors that increase the auction risk.'),
-  summary: z.string().describe('A brief, one-sentence summary of the risk assessment.'),
+  risk_percentage: z.number().min(0).max(100).describe('Probabilitas (0-100%) barang akan dilelang.'),
+  risk_level: z.enum(['Rendah', 'Sedang', 'Tinggi', 'Sangat Tinggi']).describe('Tingkat risiko kategoris.'),
+  positive_factors: z.array(z.string()).describe('Faktor-faktor yang menurunkan risiko lelang.'),
+  negative_factors: z.array(z.string()).describe('Faktor-faktor yang meningkatkan risiko lelang.'),
+  summary: z.string().describe('Ringkasan singkat satu kalimat tentang penilaian risiko.'),
 });
 export type PredictAuctionRiskOutput = z.infer<typeof PredictAuctionRiskOutputSchema>;
 
@@ -40,34 +41,36 @@ const prompt = ai.definePrompt({
   name: 'predictAuctionRiskPrompt',
   input: { schema: PredictAuctionRiskInputSchema },
   output: { schema: PredictAuctionRiskOutputSchema },
-  prompt: `You are an expert credit risk analyst for a pawnshop. Your task is to predict the auction risk for a customer whose payment is overdue.
+  prompt: `Anda adalah seorang analis risiko kredit ahli untuk sebuah pegadaian. Tugas Anda adalah memprediksi risiko lelang untuk nasabah yang pembayarannya telah jatuh tempo.
 
-Analyze the following customer data:
-- Loan Value: {{{loan_value}}} IDR
-- Days Late: {{{days_late}}}
-- Previous Late Payments: {{{has_been_late_before}}}
-- Customer Segment: {{{segment}}}
-- Transaction Count (1yr): {{{transaction_count}}}
-- Collateral: "{{{barang_jaminan}}}"
+Analisis data nasabah berikut:
+- Nilai Pinjaman: {{{loan_value}}} IDR
+- Hari Terlambat: {{{days_late}}}
+- Riwayat Terlambat Bayar: {{{has_been_late_before}}}
+- Segmen Nasabah: {{{segment}}}
+- Jumlah Transaksi (1 tahun): {{{transaction_count}}}
+- Barang Jaminan: "{{{barang_jaminan}}}"
 
-Based on this data, perform the following:
-1.  **Calculate Risk Percentage (risk_percentage)**: Estimate the probability (from 0 to 100) that this customer will default and their collateral will be auctioned.
-    - High loan value, many days late, and a history of late payments significantly increase the risk.
-    - A 'Platinum' or 'Reguler' segment with high transaction count lowers the risk.
-    - Easily sellable collateral (like pure gold, popular electronics) might slightly lower the risk of loss for the company, but for this task, focus on the customer's likelihood to default. A high-value, easy-to-sell item might even increase the customer's propensity to let it go if the loan is too high.
-    - A customer who is 'Berisiko' or 'Potensi Churn' has a much higher baseline risk.
+Berdasarkan data ini, lakukan hal berikut:
+1.  **Hitung Persentase Risiko (risk_percentage)**: Perkirakan probabilitas (dari 0 hingga 100) bahwa nasabah ini akan gagal bayar dan barang jaminannya akan dilelang.
+    - Nilai pinjaman yang tinggi, keterlambatan yang lama, dan riwayat pembayaran yang buruk akan meningkatkan risiko secara signifikan.
+    - Segmen 'Platinum' atau 'Reguler' dengan jumlah transaksi tinggi menurunkan risiko.
+    - Barang jaminan yang mudah dijual (seperti emas murni, elektronik populer) mungkin sedikit menurunkan risiko kerugian bagi perusahaan, tetapi untuk tugas ini, fokuslah pada kemungkinan nasabah untuk gagal bayar. Barang berharga tinggi yang mudah dijual bahkan bisa meningkatkan kecenderungan nasabah untuk melepaskannya jika pinjaman terlalu tinggi.
+    - Nasabah dengan segmen 'Berisiko' atau 'Potensi Churn' memiliki risiko dasar yang jauh lebih tinggi.
 
-2.  **Determine Risk Level (risk_level)**: Categorize the percentage into a level:
+2.  **Tentukan Tingkat Risiko (risk_level)**: Kategorikan persentase ke dalam tingkatan berikut:
     - 0-25%: Rendah
     - 26-50%: Sedang
     - 51-75%: Tinggi
     - 76-100%: Sangat Tinggi
 
-3.  **Identify Key Factors (positive_factors, negative_factors)**: List the top 2-3 most influential factors, both positive (decreasing risk) and negative (increasing risk). Be specific and concise.
+3.  **Identifikasi Faktor Kunci (positive_factors, negative_factors)**: Sebutkan 2-3 faktor paling berpengaruh, baik positif (menurunkan risiko) maupun negatif (meningkatkan risiko). Jawaban harus spesifik dan ringkas.
 
-4.  **Provide a Summary (summary)**: Write a single, conclusive sentence summarizing your findings.
+4.  **Berikan Ringkasan (summary)**: Tulis satu kalimat kesimpulan yang merangkum temuan Anda.
 
-Return the result in the specified JSON format.`,
+**PENTING**: Semua output teks (positive_factors, negative_factors, summary) HARUS dalam Bahasa Indonesia.
+
+Kembalikan hasilnya dalam format JSON yang ditentukan.`,
 });
 
 const predictAuctionRiskFlow = ai.defineFlow(
