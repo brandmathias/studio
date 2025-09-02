@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -14,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
-import type { BroadcastCustomer } from '@/types';
+import type { BroadcastCustomer, HistoryEntry } from '@/types';
 import { Input } from '@/components/ui/input';
 import { parsePdf } from './actions';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
@@ -65,6 +66,7 @@ const getUpcFromId = (id: string): 'Pegadaian Wanea' | 'Pegadaian Ranotana' | 'N
 };
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
+type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
 
 export default function PdfBroadcastPage() {
@@ -80,6 +82,27 @@ export default function PdfBroadcastPage() {
     whatsappUrl: string;
     customerName: string;
   } | null>(null);
+
+  const logHistory = (customer: BroadcastCustomer, status: ActionStatus, template: NotificationTemplate) => {
+    try {
+      const newEntry: HistoryEntry = {
+        id: `hist-${Date.now()}-${customer.sbg_number}`,
+        timestamp: new Date().toISOString(),
+        type: 'Gadaian Broadcast',
+        customerName: customer.name,
+        customerIdentifier: customer.sbg_number,
+        status,
+        adminUser: 'Admin', // Hardcoded for now
+        template: template,
+      };
+
+      const history = JSON.parse(localStorage.getItem('broadcastHistory') || '[]');
+      history.unshift(newEntry); // Add to the beginning
+      localStorage.setItem('broadcastHistory', JSON.stringify(history));
+    } catch (error) {
+      console.error("Failed to log history:", error);
+    }
+  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -214,6 +237,7 @@ Terima Kasih`;
         title: 'Pesan Disalin',
         description: `Pesan untuk ${customer.name} telah disalin ke clipboard.`,
       });
+      logHistory(customer, 'Pesan Disalin', template);
     }).catch(err => {
       console.error('Failed to copy message: ', err);
       toast({
@@ -235,6 +259,7 @@ Terima Kasih`;
     const whatsappUrl = `https://wa.me/${formattedPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+    logHistory(customer, 'Notifikasi Terkirim', template);
   };
 
    const handleGenerateVoicenote = async (customer: BroadcastCustomer, template: NotificationTemplate) => {

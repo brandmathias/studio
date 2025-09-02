@@ -1,3 +1,4 @@
+
 export type FollowUpStatus = 'baru' | 'dihubungi' | 'janji-bayar' | 'tidak-merespons' | 'selesai';
 
 export interface Customer {
@@ -80,4 +81,15 @@ export interface InstallmentCustomer {
   kewajiban: number;
   pencairan: string;
   kunjungan_terakhir: string;
+}
+
+export interface HistoryEntry {
+  id: string; // Unique ID for each log
+  timestamp: string; // ISO string of when the action was performed
+  type: 'Gadaian Broadcast' | 'Angsuran Broadcast'; // Type of broadcast
+  customerName: string; // Name of the customer contacted
+  customerIdentifier: string; // SBG number or other customer ID
+  status: string; // e.g., 'Notifikasi Terkirim', 'Pesan Disalin'
+  adminUser: string; // The admin user who performed the action
+  template: string; // The message template used
 }

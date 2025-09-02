@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileSpreadsheet, FileText } from 'lucide-react';
+import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileSpreadsheet, FileText, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -103,6 +103,17 @@ export default function MainLayout({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => router.push('/history')}
+                isActive={pathname.startsWith('/history')}
+                tooltip="Riwayat"
+              >
+                <History />
+                <span>Riwayat</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
 
             <SidebarMenuItem>

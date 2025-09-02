@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
-import type { InstallmentCustomer } from '@/types';
+import type { InstallmentCustomer, HistoryEntry } from '@/types';
 import { Input } from '@/components/ui/input';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
@@ -51,6 +51,7 @@ const formatDate = (value: string | number): string => {
 
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
+type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
 
 export default function XlsxBroadcastPage() {
@@ -67,6 +68,29 @@ export default function XlsxBroadcastPage() {
     customerName: string;
   } | null>(null);
 
+  const logHistory = (customer: InstallmentCustomer, status: ActionStatus, template: NotificationTemplate) => {
+    try {
+        const customerName = customer.nasabah.split('\n')[0].trim();
+        const customerIdentifier = customer.nasabah.split('\n')[1]?.trim() || 'N/A';
+
+      const newEntry: HistoryEntry = {
+        id: `hist-${Date.now()}-${customer.id}`,
+        timestamp: new Date().toISOString(),
+        type: 'Angsuran Broadcast',
+        customerName: customerName,
+        customerIdentifier: customerIdentifier,
+        status,
+        adminUser: 'Admin', // Hardcoded for now
+        template: template,
+      };
+
+      const history = JSON.parse(localStorage.getItem('broadcastHistory') || '[]');
+      history.unshift(newEntry); // Add to the beginning
+      localStorage.setItem('broadcastHistory', JSON.stringify(history));
+    } catch (error) {
+      console.error("Failed to log history:", error);
+    }
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -236,6 +260,7 @@ Terima Kasih`;
         title: 'Pesan Disalin',
         description: `Pesan untuk ${customer.nasabah.split('\n')[0]} telah disalin ke clipboard.`,
       });
+      logHistory(customer, 'Pesan Disalin', template);
     }).catch(err => {
       console.error('Failed to copy message: ', err);
       toast({
@@ -255,6 +280,7 @@ Terima Kasih`;
     const whatsappUrl = `https://wa.me/${placeholderPhoneNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+    logHistory(customer, 'Notifikasi Terkirim', template);
   };
 
   const handleGenerateVoicenote = async (customer: InstallmentCustomer, template: NotificationTemplate) => {
