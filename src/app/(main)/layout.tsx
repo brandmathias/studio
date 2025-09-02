@@ -200,10 +200,6 @@ export default function MainLayout({
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Profil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/tasks')}>
-                    <ClipboardList className="mr-2 h-4 w-4" />
-                    <span>Lacak Tugas</span>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
