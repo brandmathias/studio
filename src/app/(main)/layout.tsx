@@ -196,6 +196,10 @@ export default function MainLayout({
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                 <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profil</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/tasks')}>
                     <ClipboardList className="mr-2 h-4 w-4" />
                     <span>Lacak Tugas</span>
