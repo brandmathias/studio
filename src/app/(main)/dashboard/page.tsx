@@ -177,7 +177,7 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         phone: "(0431) 123-456",
         operatingHours: "Senin - Jumat: 08:00 - 15:00",
         description: "Melayani area Wanea dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.",
-        mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.513904996929!2d124.84803331521033!3d1.481193998964724!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x328774e1c8c95697%3A0x66f12204680d3d5e!2sPegadaian%20UPC%20Wanea!5e0!3m2!1sen!2sid!4v1622013892789!5m2!1sen!2sid",
+        mapUrl: "https://www.google.com/maps/embed?pb=!4v1756820019859!6m8!1m7!1sURTplg6edk2jkLO08BLxXg!2m2!1d1.471982700633795!2d124.8378581836489!3f62.93597041625598!4f5.839056400493703!5f0.7820865974627469",
         announcement: "Rapat evaluasi bulanan akan diadakan pada hari Jumat ini pukul 14:00.",
         featuredProduct: "Cicil Emas",
         staff: {
@@ -1081,4 +1081,5 @@ Terima Kasih`;
     
 
     
+
 
