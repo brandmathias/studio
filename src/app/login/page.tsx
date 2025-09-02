@@ -66,17 +66,10 @@ export default function LoginPage() {
       if (validUser) {
           localStorage.setItem('isLoggedIn', 'true');
           
-          // Check if there's existing data for this user to preserve avatar
-          const existingUserStr = localStorage.getItem('loggedInUser');
-          let finalUser = { ...validUser };
-          if (existingUserStr) {
-            const existingUser = JSON.parse(existingUserStr);
-            if (existingUser.email === validUser.email) {
-                finalUser.avatar = existingUser.avatar || '';
-            }
-          }
-          
-          localStorage.setItem('loggedInUser', JSON.stringify(finalUser));
+          // Always set the new user's data, overwriting any previous user data.
+          // This ensures the profile page always shows the correct logged-in user.
+          localStorage.setItem('loggedInUser', JSON.stringify(validUser));
+
           toast({
             title: 'Login Successful',
             description: `Welcome back, ${validUser.name}!`,
