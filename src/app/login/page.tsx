@@ -35,10 +35,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const allowedAccounts = [
-  { email: 'admin.wanea@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea', avatar: '' },
+  { email: 'admin.wan_ea@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea', avatar: '' },
   { email: 'admin.ranotana@pegadaian.co.id', password: 'UpcRanotana*0', name: 'Admin Ranotana', upc: 'Pegadaian Ranotana', avatar: '' },
-  { email: 'brandomathiasz13@gmail.com', password: 'Brandomz13#', name: 'Brando Mathiasz', upc: 'all', avatar: '' },
-  { email: 'saviopalendeng506@gmail.com', password: 'Saviohp506', name: 'Savio Palendeng', upc: 'all', avatar: '' },
 ];
 
 
@@ -88,7 +86,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm shadow-2xl">
+      <Card className="w-full max-w-sm shadow-2xl animate-in fade-in-0 slide-in-from-bottom-10 duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center items-center gap-2 mb-2">
             <Scale className="h-8 w-8 text-primary" />

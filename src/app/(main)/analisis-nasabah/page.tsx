@@ -24,7 +24,7 @@ export default function AnalisisNasabahPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-            <Card className="flex flex-col">
+            <Card className="flex flex-col transition-transform duration-200 hover:scale-105 hover:shadow-xl">
                 <CardHeader>
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-primary/10 rounded-full">
@@ -43,7 +43,7 @@ export default function AnalisisNasabahPage() {
                 </CardContent>
             </Card>
 
-            <Card className="flex flex-col">
+            <Card className="flex flex-col transition-transform duration-200 hover:scale-105 hover:shadow-xl">
                 <CardHeader>
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-accent/20 rounded-full">

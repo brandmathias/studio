@@ -674,7 +674,7 @@ Terima Kasih`;
         
         <div className="grid gap-6 lg:grid-cols-3">
           {/* UPC Profile Card */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 transition-shadow duration-200 hover:shadow-xl">
               <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Building className="h-6 w-6 text-primary" />
@@ -733,7 +733,7 @@ Terima Kasih`;
 
           <div className="lg:col-span-1 space-y-6">
               {/* Total Customers Card */}
-              <Card>
+              <Card className="transition-shadow duration-200 hover:shadow-xl">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">Total Nasabah</CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
@@ -749,7 +749,7 @@ Terima Kasih`;
         {userUpc !== 'all' && (
           <div className="grid gap-6 md:grid-cols-2">
              {/* Staff Cards */}
-              <Card>
+              <Card className="transition-shadow duration-200 hover:shadow-xl">
                   <CardHeader className="flex flex-row items-center gap-4 space-y-0">
                       <Avatar className="h-12 w-12">
                           <AvatarImage src={profileData.staff.penaksir.avatar} />
@@ -762,7 +762,7 @@ Terima Kasih`;
                       </div>
                   </CardHeader>
               </Card>
-               <Card>
+               <Card className="transition-shadow duration-200 hover:shadow-xl">
                   <CardHeader className="flex flex-row items-center gap-4 space-y-0">
                        <Avatar className="h-12 w-12">
                           <AvatarImage src={profileData.staff.kasir.avatar} />
