@@ -6,23 +6,34 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Building, LogOut } from 'lucide-react';
+import { User, Mail, Building, LogOut, Upload, Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 interface UserProfile {
   name: string;
   email: string;
   upc: string;
+  avatar?: string;
 }
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [user, setUser] = React.useState<UserProfile | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
   React.useEffect(() => {
     // Ensure this runs only on the client
     const storedUser = localStorage.getItem('loggedInUser');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      if (parsedUser.avatar) {
+        setAvatarPreview(parsedUser.avatar);
+      }
     } else {
       // If no user data, redirect to login
       router.push('/login');
@@ -33,6 +44,51 @@ export default function ProfilePage() {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('loggedInUser');
     router.push('/login');
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+          title: "Ukuran File Terlalu Besar",
+          description: "Ukuran foto profil tidak boleh melebihi 2MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleSaveChanges = () => {
+    if (!user || !avatarPreview) return;
+
+    const updatedUser = { ...user, avatar: avatarPreview };
+    
+    try {
+        localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        // This is a bit of a hack to trigger the storage event for the layout
+        window.dispatchEvent(new Event('storage'));
+        toast({
+            title: "Profil Diperbarui",
+            description: "Foto profil Anda telah berhasil disimpan.",
+        });
+        setSelectedFile(null); // Reset file selection
+    } catch(error) {
+        console.error("Error saving to localStorage", error);
+        toast({
+            title: "Gagal Menyimpan",
+            description: "Tidak dapat menyimpan foto profil. Local storage mungkin penuh.",
+            variant: "destructive",
+        });
+    }
   };
 
   if (!user) {
@@ -48,10 +104,26 @@ export default function ProfilePage() {
       <div className="w-full max-w-md">
         <Card className="shadow-lg">
           <CardHeader className="items-center text-center">
-            <Avatar className="h-24 w-24 mb-4">
-              <AvatarImage src={`https://placehold.co/100x100`} alt={user.name} data-ai-hint="person portrait" />
-              <AvatarFallback className="text-3xl">{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
+             <div className="relative">
+                <Avatar className="h-24 w-24 mb-4">
+                    <AvatarImage src={avatarPreview || `https://placehold.co/100x100`} alt={user.name} />
+                    <AvatarFallback className="text-3xl">{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <Button 
+                    size="icon" 
+                    className="absolute bottom-4 right-0 rounded-full h-8 w-8"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <Upload className="h-4 w-4" />
+                </Button>
+                <Input 
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/gif"
+                    onChange={handleFileChange}
+                />
+             </div>
             <CardTitle className="text-2xl">{user.name}</CardTitle>
             <CardDescription>Detail Akun Anda</CardDescription>
           </CardHeader>
@@ -77,6 +149,14 @@ export default function ProfilePage() {
                     <p className="font-medium">{user.upc === 'all' ? 'Semua Cabang (Super Admin)' : user.upc}</p>
                 </div>
             </div>
+
+            {selectedFile && (
+                 <Button onClick={handleSaveChanges} className="w-full mt-2">
+                    <Save className="mr-2 h-4 w-4" />
+                    Simpan Perubahan
+                </Button>
+            )}
+
              <Button onClick={handleLogout} variant="destructive" className="w-full mt-6">
               <LogOut className="mr-2 h-4 w-4" />
               Keluar

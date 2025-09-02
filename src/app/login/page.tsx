@@ -35,10 +35,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const allowedAccounts = [
-  { email: 'admin.wanena@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea' },
-  { email: 'admin.ranotana@pegadaian.co.id', password: 'UpcRanotana*0', name: 'Admin Ranotana', upc: 'Pegadaian Ranotana' },
-  { email: 'brandomathiasz13@gmail.com', password: 'Brandomz13#', name: 'Brando Mathiasz', upc: 'all' },
-  { email: 'saviopalendeng506@gmail.com', password: 'Saviohp506', name: 'Savio Palendeng', upc: 'all' },
+  { email: 'admin.wanena@pegadaian.co.id', password: 'UpcWanea*0', name: 'Admin Wanea', upc: 'Pegadaian Wanea', avatar: '' },
+  { email: 'admin.ranotana@pegadaian.co.id', password: 'UpcRanotana*0', name: 'Admin Ranotana', upc: 'Pegadaian Ranotana', avatar: '' },
+  { email: 'brandomathiasz13@gmail.com', password: 'Brandomz13#', name: 'Brando Mathiasz', upc: 'all', avatar: '' },
+  { email: 'saviopalendeng506@gmail.com', password: 'Saviohp506', name: 'Savio Palendeng', upc: 'all', avatar: '' },
 ];
 
 
@@ -65,8 +65,18 @@ export default function LoginPage() {
     setTimeout(() => {
       if (validUser) {
           localStorage.setItem('isLoggedIn', 'true');
-          // Store user info, including their UPC for data scoping
-          localStorage.setItem('loggedInUser', JSON.stringify({ name: validUser.name, email: validUser.email, upc: validUser.upc }));
+          
+          // Check if there's existing data for this user to preserve avatar
+          const existingUserStr = localStorage.getItem('loggedInUser');
+          let finalUser = { ...validUser };
+          if (existingUserStr) {
+            const existingUser = JSON.parse(existingUserStr);
+            if (existingUser.email === validUser.email) {
+                finalUser.avatar = existingUser.avatar || '';
+            }
+          }
+          
+          localStorage.setItem('loggedInUser', JSON.stringify(finalUser));
           toast({
             title: 'Login Successful',
             description: `Welcome back, ${validUser.name}!`,

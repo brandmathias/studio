@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 interface User {
   name: string;
   email: string;
+  avatar?: string;
 }
 
 export default function MainLayout({
@@ -43,14 +44,24 @@ export default function MainLayout({
   const [user, setUser] = React.useState<User | null>(null);
 
   React.useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('loggedInUser');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-    }
+    const updateUser = () => {
+        try {
+          const storedUser = localStorage.getItem('loggedInUser');
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
+        } catch (error) {
+          console.error("Failed to parse user from localStorage", error);
+        }
+    };
+    
+    updateUser();
+
+    // Listen for storage changes to update avatar across tabs
+    window.addEventListener('storage', updateUser);
+    return () => {
+        window.removeEventListener('storage', updateUser);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -182,7 +193,7 @@ export default function MainLayout({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start gap-2 px-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/40x40" alt={user?.name || 'User'} data-ai-hint="person portrait" />
+                  <AvatarImage src={user?.avatar} alt={user?.name || 'User'} />
                   <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="text-left">
