@@ -719,23 +719,6 @@ Terima Kasih`;
                             <span>{profileData.operatingHours}</span>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <h4 className="font-semibold">Informasi Tambahan</h4>
-                         <div className="flex items-start gap-3 text-sm p-3 bg-accent/10 rounded-lg border border-accent/20">
-                            <Megaphone className="h-4 w-4 mt-1 text-accent-foreground flex-shrink-0" />
-                            <div>
-                                <p className="font-medium text-accent-foreground">Pengumuman Internal:</p>
-                                <p className="text-muted-foreground">{profileData.announcement}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3 text-sm p-3 bg-primary/5 rounded-lg border border-primary/20">
-                            <Star className="h-4 w-4 mt-1 text-primary flex-shrink-0" />
-                            <div>
-                                <p className="font-medium text-primary">Produk Unggulan Bulan Ini:</p>
-                                <p className="text-muted-foreground">{profileData.featuredProduct}</p>
-                            </div>
-                        </div>
-                      </div>
                   </div>
                    <div className='relative'>
                         <div className="absolute top-2 right-2 z-10 bg-background/70 p-1 rounded-md backdrop-blur-sm flex items-center gap-1">
@@ -778,64 +761,6 @@ Terima Kasih`;
                   <CardContent>
                       <div className="text-2xl font-bold">{customers.length}</div>
                       <p className="text-xs text-muted-foreground">Jumlah nasabah aktif di {userUpc === 'all' ? 'semua cabang' : profileData.name}</p>
-                  </CardContent>
-              </Card>
-
-              {/* Overdue Customers Card */}
-              <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Nasabah Lewat Jatuh Tempo</CardTitle>
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                  </CardHeader>
-                  <CardContent>
-                      <div className="text-2xl font-bold text-destructive">{overdueCustomersCount}</div>
-                      <p className="text-xs text-muted-foreground">Nasabah yang membutuhkan perhatian segera.</p>
-                  </CardContent>
-              </Card>
-
-              {/* Follow-up Status Card */}
-              <Card>
-                  <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Ringkasan Status Follow-up</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                       {followUpStatusData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={150}>
-                            <PieChart>
-                                <Pie 
-                                    data={followUpStatusData} 
-                                    cx="50%" 
-                                    cy="50%" 
-                                    outerRadius={60} 
-                                    dataKey="value"
-                                    labelLine={false}
-                                    label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
-                                        const RADIAN = Math.PI / 180;
-                                        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                                        return (
-                                            <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                                            {`${(percent * 100).toFixed(0)}%`}
-                                            </text>
-                                        );
-                                    }}
-                                >
-                                </Pie>
-                                <Tooltip 
-                                     contentStyle={{
-                                        backgroundColor: 'hsl(var(--background))',
-                                        borderColor: 'hsl(var(--border))',
-                                    }}
-                                />
-                                <Legend iconSize={10} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                       ) : (
-                          <div className="flex items-center justify-center h-[150px] text-muted-foreground text-sm">
-                            Tidak ada data follow-up.
-                          </div>
-                       )}
                   </CardContent>
               </Card>
           </div>
@@ -1101,6 +1026,7 @@ Terima Kasih`;
     
 
     
+
 
 
 
