@@ -36,10 +36,10 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const allowedAccounts = [
-  { email: 'admin.wanena@pegadaian.co.id', password: 'password1', name: 'Admin Wanea' },
-  { email: 'admin.ranotana@pegadaian.co.id', password: 'password2', name: 'Admin Ranotana' },
-  { email: 'brandomathiasz13@gmail.com', password: 'password3', name: 'Brando Mathiasz' },
-  { email: 'saviopalendeng506@gmail.com', password: 'password4', name: 'Savio Palendeng' },
+  { email: 'admin.wanena@pegadaian.co.id', password: 'WaneaPegadaian2024!', name: 'Admin Wanea' },
+  { email: 'admin.ranotana@pegadaian.co.id', password: 'RanotanaPastiBisa#', name: 'Admin Ranotana' },
+  { email: 'brandomathiasz13@gmail.com', password: 'BrandoM13@Studio', name: 'Brando Mathiasz' },
+  { email: 'saviopalendeng506@gmail.com', password: 'SavioP506$Gadai', name: 'Savio Palendeng' },
 ];
 
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
             title: 'Login Successful',
             description: `Welcome back, ${validUser.name}!`,
           });
-          router.push('/');
+          router.push('/dashboard');
       } else {
           toast({
             title: 'Login Failed',
