@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'GadaiAlert',
-  description: 'Dashboard notifikasi untuk nasabah PT Pegadaian',
+  title: 'NAVIGA (NAVIGASI GADAI)',
+  description: 'Dashboard navigasi dan notifikasi gadai',
 };
 
 export default function RootLayout({

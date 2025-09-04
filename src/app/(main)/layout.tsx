@@ -15,7 +15,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
+import { Compass, LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -81,8 +81,8 @@ export default function MainLayout({
               onClick={() => router.push('/dashboard')}
               className="flex items-center gap-2 text-primary"
             >
-            <Scale className="h-6 w-6" />
-            <span className="font-headline text-lg">GadaiAlert</span>
+            <Compass className="h-6 w-6" />
+            <span className="font-headline text-lg">NAVIGA</span>
           </button>
         </SidebarHeader>
         <SidebarContent>
@@ -190,8 +190,8 @@ export default function MainLayout({
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
               >
-                <Scale className="h-6 w-6" />
-                <span className="font-headline">GadaiAlert</span>
+                <Compass className="h-6 w-6" />
+                <span className="font-headline">NAVIGA</span>
               </button>
             </nav>
             <div className="flex items-center">
