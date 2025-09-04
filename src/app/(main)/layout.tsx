@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   Sidebar,
@@ -183,8 +184,8 @@ export default function MainLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-         <header className="sticky top-0 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex">
-             <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
+         <header className="sticky top-0 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex justify-between">
+             <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
               <button
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
@@ -193,6 +194,15 @@ export default function MainLayout({
                 <span className="font-headline">GadaiAlert</span>
               </button>
             </nav>
+            <div className="flex items-center">
+              <Image 
+                src="/PegadaianLogo.png"
+                alt="Logo Pegadaian"
+                width={120}
+                height={40}
+                priority
+              />
+            </div>
         </header>
         {children}
       </SidebarInset>
