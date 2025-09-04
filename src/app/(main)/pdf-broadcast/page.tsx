@@ -438,7 +438,7 @@ Terima Kasih`;
                   <TableHead>No. SBG</TableHead>
                   <TableHead>Nasabah</TableHead>
                   <TableHead>Rubrik</TableHead>
-                  <TableHead>Tgl. Kredit & Jth Tempo</TableHead>
+                  <TableHead>Tgl. Kredit &amp; Jth Tempo</TableHead>
                   <TableHead>Barang Jaminan</TableHead>
                   <TableHead>Taksiran</TableHead>
                   <TableHead>UP (Uang Pinjaman)</TableHead>
@@ -464,7 +464,20 @@ Terima Kasih`;
                       </TableCell>
                     </TableRow>
                 ) : (
-                  extractedData.map((customer, index) => (
+                  extractedData.map((customer, index) => {
+                    // Logic to ensure credit date is always before due date
+                    const creditDateObj = parseDateForFormatting(customer.credit_date);
+                    const dueDateObj = parseDateForFormatting(customer.due_date);
+                    
+                    let displayCreditDate = customer.credit_date;
+                    let displayDueDate = customer.due_date;
+
+                    if (creditDateObj && dueDateObj && creditDateObj > dueDateObj) {
+                        displayCreditDate = customer.due_date;
+                        displayDueDate = customer.credit_date;
+                    }
+
+                    return (
                     <TableRow key={customer.sbg_number || index} data-state={selectedCustomers.has(customer.sbg_number) ? 'selected' : ''}>
                       <TableCell>
                         <Checkbox
@@ -477,8 +490,8 @@ Terima Kasih`;
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>{customer.rubrik}</TableCell>
                       <TableCell>
-                        <div>{formatDate(customer.credit_date)}</div>
-                        <div className='font-bold'>{formatDate(customer.due_date)}</div>
+                        <div>{formatDate(displayCreditDate)}</div>
+                        <div className='font-bold'>{formatDate(displayDueDate)}</div>
                       </TableCell>
                       <TableCell>{customer.barang_jaminan}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
@@ -540,7 +553,8 @@ Terima Kasih`;
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                  )
+                })
                 )}
               </TableBody>
             </Table>
@@ -555,3 +569,5 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
