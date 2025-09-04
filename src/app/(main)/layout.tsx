@@ -14,7 +14,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Scale, LogOut, TestTube2, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, BarChart3, Users, Lightbulb, User as UserIcon } from 'lucide-react';
+import { Scale, LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -180,7 +180,7 @@ export default function MainLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+         <header className="sticky top-0 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex">
              <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
               <a
                 href="#"
