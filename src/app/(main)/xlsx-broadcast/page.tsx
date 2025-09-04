@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
-import type { InstallmentCustomer, HistoryEntry, Customer } from '@/types';
+import type { InstallmentCustomer, HistoryEntry, Customer, FollowUpStatus } from '@/types';
 import { Input } from '@/components/ui/input';
 import VoicenotePreviewDialog from '@/components/VoicenotePreviewDialog';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const formatCurrency = (value: number | string | undefined) => {
@@ -53,6 +54,15 @@ const formatDate = (value: string | number): string => {
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
+const followUpStatusOptions: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'selesai'];
+const followUpStatusIndonesian: Record<FollowUpStatus, string> = {
+  'baru': 'Baru',
+  'dihubungi': 'Sudah Dihubungi',
+  'janji-bayar': 'Janji Bayar',
+  'tidak-merespons': 'Tidak Merespons',
+  'selesai': 'Selesai',
+};
+
 
 export default function XlsxBroadcastPage() {
   const { toast } = useToast();
@@ -76,6 +86,16 @@ export default function XlsxBroadcastPage() {
     whatsappUrl: string;
     customerName: string;
   } | null>(null);
+
+  const handleStatusChange = (customerId: string, newStatus: FollowUpStatus) => {
+    setImportedData(currentData => 
+        currentData.map(customer => 
+            customer.id === customerId 
+                ? { ...customer, follow_up_status: newStatus } 
+                : customer
+        )
+    );
+  };
 
   const logHistory = (customer: InstallmentCustomer, status: ActionStatus, template: NotificationTemplate) => {
     try {
@@ -154,12 +174,13 @@ export default function XlsxBroadcastPage() {
                 angsuran: parseFloat(String(row[7]).replace(/[^0-9.-]+/g,"")) || 0,
                 kewajiban: parseFloat(String(row[8]).replace(/[^0-9.-]+/g,"")) || 0,
                 pencairan: String(row[9] || ''),
-                kunjungan_terakhir: row[10] || 'N/A'
+                kunjungan_terakhir: row[10] || 'N/A',
+                follow_up_status: 'baru'
             }))
             .filter(c => {
                  // A valid row MUST have a customer name/ID (nasabah) and a product name (produk).
                  // This is a more robust check than just looking at kewajiban.
-                return c.nasabah.trim() && c.produk.trim();
+                return c.nasabah && c.nasabah.trim() && c.produk && c.produk.trim();
             });
             
              // Filter by UPC if not a super admin
@@ -279,6 +300,7 @@ Terima Kasih`;
         description: `Pesan untuk ${customer.nasabah.split('\n')[0]} telah disalin ke clipboard.`,
       });
       logHistory(customer, 'Pesan Disalin', template);
+      handleStatusChange(customer.id, 'dihubungi');
     }).catch(err => {
       console.error('Failed to copy message: ', err);
       toast({
@@ -299,6 +321,7 @@ Terima Kasih`;
     
     window.open(whatsappUrl, '_blank');
     logHistory(customer, 'Notifikasi Terkirim', template);
+    handleStatusChange(customer.id, 'dihubungi');
   };
 
   const handleGenerateVoicenote = async (customer: InstallmentCustomer, template: NotificationTemplate) => {
@@ -319,7 +342,7 @@ Terima Kasih`;
             whatsappUrl,
             customerName: customer.nasabah.split('\n')[0],
         });
-
+        handleStatusChange(customer.id, 'dihubungi');
     } catch (error) {
         console.error('Voicenote generation failed:', error);
         toast({
@@ -429,20 +452,21 @@ Terima Kasih`;
                   <TableHead>Kewajiban</TableHead>
                   <TableHead>Pencairan</TableHead>
                   <TableHead>Kunjungan Terakhir</TableHead>
+                  <TableHead>Status Follow-up</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                     <TableRow>
-                        <TableCell colSpan={13} className="h-24 text-center">
+                        <TableCell colSpan={14} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">Memproses file XLSX...</p>
                         </TableCell>
                     </TableRow>
                 ) : importedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={13} className="h-24 text-center">
+                      <TableCell colSpan={14} className="h-24 text-center">
                           Tidak ada data. Klik "Impor XLSX" untuk memulai.
                       </TableCell>
                     </TableRow>
@@ -467,6 +491,23 @@ Terima Kasih`;
                       <TableCell className="text-right">{formatCurrency(customer.kewajiban)}</TableCell>
                       <TableCell>{customer.pencairan}</TableCell>
                       <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>
+                       <TableCell>
+                        <Select
+                            value={customer.follow_up_status}
+                            onValueChange={(value) => handleStatusChange(customer.id, value as FollowUpStatus)}
+                        >
+                            <SelectTrigger className="w-[150px]">
+                                <SelectValue placeholder="Set Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {followUpStatusOptions.map(status => (
+                                    <SelectItem key={status} value={status}>
+                                        {followUpStatusIndonesian[status]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                            <DropdownMenu>

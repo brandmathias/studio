@@ -33,6 +33,7 @@ export interface BroadcastCustomer {
   sewa_modal: number;
   alamat: string;
   status: string;
+  follow_up_status: FollowUpStatus;
 }
 
 export interface ScheduledTask {
@@ -82,6 +83,7 @@ export interface InstallmentCustomer {
   kewajiban: number;
   pencairan: string;
   kunjungan_terakhir: string;
+  follow_up_status: FollowUpStatus;
 }
 
 export interface HistoryEntry {
