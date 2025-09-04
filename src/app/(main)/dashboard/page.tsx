@@ -63,25 +63,25 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
   },
   'Pegadaian Ranotana': {
     name: 'UPC Ranotana',
-    address: 'Komp. Ruko Ranotana, Jl. D.I. Panjaitan, Manado',
-    phone: '(0431) 987-654',
-    operatingHours: 'Senin - Sabtu: 08:00 - 16:00',
+    address: 'Jl. Sam Ratulangi No.400, Ranotana, Kec. Sario, Kota Manado, Sulawesi Utara',
+    phone: '082296985752',
+    operatingHours: 'Senin - Jumat: 08.00 - 15.30 dan Sabtu 08.00 - 12.30',
     description:
-      'Spesialisasi dalam layanan angsuran kendaraan dan gadai barang elektronik.',
+      'Melayani area Ranotana dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.',
     mapUrl:
       'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid',
     streetViewUrl:
       'https://www.google.com/maps/embed?pb=!1m0!4v1719216962386!6m8!1m7!1sCAoSLEFGMVFpcE5MY3Z0OGdaVURFN2p0XzREdGo0V2hCcEJBTWpNVXN2d3ZqTFNr!2m2!1d1.4746025!2d124.8399583!3f240.23!4f-1.339999999999996!5f0.7820865974627469',
     staff: {
       penaksir: {
-        name: 'Michael Wowor',
-        nip: 'P12345',
-        avatar: 'https://placehold.co/100x100/A0E6E6/000000?text=MW',
+        name: 'Fandy Phispal',
+        nip: 'P86446',
+        avatar: 'https://placehold.co/100x100/A0E6E6/000000?text=FP',
       },
       kasir: {
-        name: 'Jessica Manopo',
-        nip: 'E67890',
-        avatar: 'https://placehold.co/100x100/FFC0CB/000000?text=JM',
+        name: 'Novi Mohede',
+        nip: 'ERA00363',
+        avatar: 'https://placehold.co/100x100/FFC0CB/000000?text=NM',
       },
     },
   },
