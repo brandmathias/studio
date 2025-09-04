@@ -69,9 +69,9 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
     description:
       'Melayani area Ranotana dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.',
     mapUrl:
-      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid',
+      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.54228945415!2d124.83561267600445!3d1.4608375983758362!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x328774e1d3e1d3e1%3A0x6d3c63a6e62b66e!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1719890457613!5m2!1sen!2sid',
     streetViewUrl:
-      'https://www.google.com/maps/embed?pb=!1m0!4v1719216962386!6m8!1m7!1sCAoSLEFGMVFpcE5MY3Z0OGdaVURFN2p0XzREdGo0V2hCcEJBTWpNVXN2d3ZqTFNr!2m2!1d1.4746025!2d124.8399583!3f240.23!4f-1.339999999999996!5f0.7820865974627469',
+      'https://www.google.com/maps/embed?pb=!4v1757025554312!6m8!1m7!1s5mCy8QOf5heM7-wbaR-aZw!2m2!1d1.46083288707316!2d124.8378025946448!3f290.59495153922313!4f-0.5931369050220923!5f0.7820865974627469',
     staff: {
       penaksir: {
         name: 'Fandy Phispal',
