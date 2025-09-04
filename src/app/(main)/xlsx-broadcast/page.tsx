@@ -489,8 +489,7 @@ Terima Kasih`;
                       <TableCell className="text-right">{formatCurrency(customer.angsuran)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.kewajiban)}</TableCell>
                       <TableCell>{customer.pencairan}</TableCell>
-                      <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>
-                       <TableCell>
+                      <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>                       <TableCell>
                         <Select
                             value={customer.follow_up_status}
                             onValueChange={(value) => handleStatusChange(customer.id, value as FollowUpStatus)}
