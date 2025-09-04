@@ -31,24 +31,41 @@ import { Badge } from '@/components/ui/badge';
 
 
 const parseDateForFormatting = (dateString: string): Date | null => {
-    if (!dateString) return null;
-    // Handles DD/MM/YYYY from AI
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
-        const [day, month, year] = dateString.split('/');
-        const d = new Date(`${year}-${month}-${day}`);
-        return isNaN(d.getTime()) ? null : d;
+    if (!dateString || typeof dateString !== 'string') return null;
+
+    // Handles DD/MM/YYYY from AI, which is the most likely format
+    const parts = dateString.match(/(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})/);
+    if (parts) {
+        const day = parseInt(parts[1], 10);
+        const month = parseInt(parts[2], 10);
+        const year = parseInt(parts[3], 10);
+        // Note: JavaScript months are 0-indexed
+        const d = new Date(year, month - 1, day);
+        // Basic validation
+        if (d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day) {
+            return d;
+        }
     }
-    // Fallback for other formats like YYYY-MM-DD
+    
+    // Fallback for other JS-parsable formats (like YYYY-MM-DD)
     const d = new Date(dateString);
-    if (isNaN(d.getTime())) return null;
-    return d;
+    if (!isNaN(d.getTime())) {
+        return d;
+    }
+
+    return null;
 };
 
 
 const formatDate = (dateString: string) => {
     const date = parseDateForFormatting(dateString);
     if (!date) return 'N/A';
-    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // JS months are 0-indexed
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
 };
 
 const formatCurrency = (value: number) => {
@@ -220,13 +237,13 @@ export default function PdfBroadcastPage() {
   
  const getNotificationMessage = (customer: BroadcastCustomer, template: NotificationTemplate): string => {
     const dueDateString = customer.due_date;
-    const dueDate = parseDateForFormatting(dueDateString);
+    const date = parseDateForFormatting(dueDateString);
+    
+    // Use 'id-ID' locale for full month name formatting in the message
+    const formattedDueDateForMessage = date 
+        ? date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }).toLocaleUpperCase() 
+        : 'TANGGAL TIDAK VALID';
 
-    if (!dueDate) {
-        return `Data jatuh tempo untuk nasabah ${customer.name} tidak valid.`;
-    }
-
-    const formattedDueDate = formatDate(dueDateString).toLocaleUpperCase();
     let messageBody = '';
     const upc = getUpcFromId(customer.sbg_number);
     let headerLine = '';
@@ -243,14 +260,14 @@ export default function PdfBroadcastPage() {
         case 'peringatan-lelang':
             messageBody = `*PERINGATAN LELANG (TERAKHIR)*
 
-Gadaian Anda No. ${customer.sbg_number} (${customer.barang_jaminan}) telah melewati batas jatuh tempo (${formattedDueDate}) lebih dari 14 hari.
+Gadaian Anda No. ${customer.sbg_number} (${customer.barang_jaminan}) telah melewati batas jatuh tempo (${formattedDueDateForMessage}) lebih dari 14 hari.
 
 Untuk menghindari proses lelang, segera lakukan pelunasan atau perpanjangan di cabang terdekat dalam waktu 2x24 jam. Abaikan pesan ini jika sudah melakukan pembayaran.`;
             break;
         case 'keterlambatan':
             messageBody = `*Gadaian Anda Sudah Jatuh Tempo*
 
-Gadaian No. ${customer.sbg_number} (${customer.barang_jaminan}) telah melewati tanggal jatuh tempo pada ${formattedDueDate}.
+Gadaian No. ${customer.sbg_number} (${customer.barang_jaminan}) telah melewati tanggal jatuh tempo pada ${formattedDueDateForMessage}.
 
 Akan dikenakan denda keterlambatan. Mohon segera lakukan pembayaran untuk menghindari denda yang lebih besar atau risiko lelang.`;
             break;
@@ -258,7 +275,7 @@ Akan dikenakan denda keterlambatan. Mohon segera lakukan pembayaran untuk menghi
         default:
             messageBody = `*Gadaian Anda akan segera Jatuh Tempo*
 
-Gadaian No. ${customer.sbg_number} (${customer.barang_jaminan}) akan jatuh tempo pada tanggal *${formattedDueDate}*.
+Gadaian No. ${customer.sbg_number} (${customer.barang_jaminan}) akan jatuh tempo pada tanggal *${formattedDueDateForMessage}*.
 
 Segera lakukan pembayaran bunga/perpanjangan/cek TAMBAH PINJAMAN. Pembayaran bisa dilakukan secara online melalui aplikasi PEGADAIAN DIGITAL atau e-channel lainnya.`;
             break;
@@ -542,3 +559,5 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
