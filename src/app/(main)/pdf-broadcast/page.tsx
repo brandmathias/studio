@@ -167,7 +167,7 @@ export default function PdfBroadcastPage() {
             results = results.filter(c => getUpcFromId(c.sbg_number) === adminUser.upc);
         }
         
-        // Initialize follow_up_status for each customer
+        // Initialize follow_up_status for each customer to 'dihubungi'
         const resultsWithStatus = results.map(c => ({...c, follow_up_status: 'dihubungi' as FollowUpStatus}));
 
         if (resultsWithStatus.length === 0) {
