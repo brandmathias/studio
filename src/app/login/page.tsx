@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Compass, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -92,7 +92,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-2xl animate-in fade-in-0 slide-in-from-bottom-10 duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center items-center gap-2 mb-2">
-            <Image src="/NAVIGA.ico" alt="NAVIGA Icon" width={32} height={32} />
+            <Image src="/logo.ico" alt="App Logo" width={32} height={32} />
           </div>
           <CardTitle className="text-2xl font-headline">NAVIGA Admin</CardTitle>
           <CardDescription>Enter your credentials to access the dashboard</CardDescription>

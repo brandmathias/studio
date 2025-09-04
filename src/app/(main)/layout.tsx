@@ -15,7 +15,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Compass, LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
+import { LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -81,7 +81,7 @@ export default function MainLayout({
               onClick={() => router.push('/dashboard')}
               className="flex items-center gap-2 text-primary"
             >
-            <Image src="/NAVIGA.ico" alt="NAVIGA Icon" width={24} height={24} />
+            <Image src="/logo.ico" alt="App Logo" width={24} height={24} />
             <span className="font-headline text-lg">NAVIGA</span>
           </button>
         </SidebarHeader>
@@ -190,7 +190,7 @@ export default function MainLayout({
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
               >
-                <Image src="/NAVIGA.ico" alt="NAVIGA Icon" width={24} height={24} />
+                <Image src="/logo.ico" alt="App Logo" width={24} height={24} />
                 <span className="font-headline">NAVIGA</span>
               </button>
             </nav>
