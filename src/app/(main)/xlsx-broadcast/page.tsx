@@ -537,7 +537,7 @@ Terima Kasih`;
                                 <DropdownMenuContent>
                                     <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'jatuh-tempo')}>Buat VN Pengingat</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'keterlambatan')}>Buat VN Keterlambatan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleGenerateVoicenote(customer, 'peringaringatan-lelang')}>Buat VN Peringatan Lelang</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
