@@ -32,9 +32,12 @@ export default function HistoryPage() {
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast'>('all');
-  const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc']>('all');
+  const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc'] | null>(null);
+  const [isClient, setIsClient] = React.useState(false);
+
 
   React.useEffect(() => {
+    setIsClient(true);
     // Set initial date filter on the client to avoid hydration mismatch
     setDateFilter(startOfToday());
 
@@ -65,6 +68,7 @@ export default function HistoryPage() {
   }, [history, dateFilter, typeFilter]);
 
   const clearHistory = () => {
+    if (userUpc === null) return;
     const storageKey = userUpc === 'all' ? 'broadcastHistory_all' : `broadcastHistory_${userUpc}`;
     localStorage.removeItem(storageKey);
     setHistory([]);
@@ -90,7 +94,7 @@ export default function HistoryPage() {
         <CardHeader>
           <CardTitle>Log Aktivitas</CardTitle>
           <CardDescription>
-            Tabel ini menampilkan semua riwayat aktivitas broadcast yang telah dilakukan oleh admin {userUpc === 'all' ? 'semua cabang' : userUpc}.
+            {isClient ? `Tabel ini menampilkan semua riwayat aktivitas broadcast yang telah dilakukan oleh admin ${userUpc === 'all' ? 'semua cabang' : userUpc}.` : 'Memuat data riwayat...'}
           </CardDescription>
         </CardHeader>
         <CardContent>
