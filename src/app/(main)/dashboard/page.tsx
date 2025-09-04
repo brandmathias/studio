@@ -152,7 +152,7 @@ const INITIAL_CUSTOMERS: Customer[] = MOCK_CUSTOMERS_RAW.map(c => ({
   ...c,
   upc: getUpcFromId(c.id),
   segment: 'none',
-  follow_up_status: 'baru',
+  follow_up_status: 'dihubungi',
 }));
 
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
@@ -603,7 +603,6 @@ Terima Kasih`;
       }, {} as Record<Customer['follow_up_status'], number>);
 
       const data = [
-          { name: 'Baru', value: statusCounts['baru'] || 0, fill: 'hsl(var(--chart-1))'},
           { name: 'Dihubungi', value: statusCounts['dihubungi'] || 0, fill: 'hsl(var(--chart-2))' },
           { name: 'Janji Bayar', value: statusCounts['janji-bayar'] || 0, fill: 'hsl(var(--chart-3))' },
           { name: 'Tdk Respons', value: statusCounts['tidak-merespons'] || 0, fill: 'hsl(var(--chart-4))' },

@@ -54,9 +54,8 @@ const formatDate = (value: string | number): string => {
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
-const followUpStatusOptions: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
+const followUpStatusOptions: FollowUpStatus[] = ['dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
 const followUpStatusIndonesian: Record<FollowUpStatus, string> = {
-  'baru': 'Baru',
   'dihubungi': 'Sudah Dihubungi',
   'janji-bayar': 'Janji Bayar',
   'tidak-merespons': 'Tidak Merespons',
@@ -175,7 +174,7 @@ export default function XlsxBroadcastPage() {
                 kewajiban: parseFloat(String(row[8]).replace(/[^0-9.-]+/g,"")) || 0,
                 pencairan: String(row[9] || ''),
                 kunjungan_terakhir: row[10] || 'N/A',
-                follow_up_status: 'baru'
+                follow_up_status: 'dihubungi'
             }))
             .filter(c => {
                  // A valid row MUST have a customer name/ID (nasabah) and a product name (produk).

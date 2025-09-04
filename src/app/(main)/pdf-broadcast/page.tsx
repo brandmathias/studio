@@ -70,9 +70,8 @@ const getUpcFromId = (id: string): Customer['upc'] => {
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
-const followUpStatusOptions: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
+const followUpStatusOptions: FollowUpStatus[] = ['dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
 const followUpStatusIndonesian: Record<FollowUpStatus, string> = {
-  'baru': 'Baru',
   'dihubungi': 'Sudah Dihubungi',
   'janji-bayar': 'Janji Bayar',
   'tidak-merespons': 'Tidak Merespons',
@@ -169,7 +168,7 @@ export default function PdfBroadcastPage() {
         }
         
         // Initialize follow_up_status for each customer
-        const resultsWithStatus = results.map(c => ({...c, follow_up_status: 'baru' as FollowUpStatus}));
+        const resultsWithStatus = results.map(c => ({...c, follow_up_status: 'dihubungi' as FollowUpStatus}));
 
         if (resultsWithStatus.length === 0) {
             toast({

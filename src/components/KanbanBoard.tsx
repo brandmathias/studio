@@ -19,14 +19,13 @@ const priorityVariantMap: Record<Customer['priority'], VariantProps<typeof Badge
 };
 
 const columns: Record<FollowUpStatus, string> = {
-    'baru': 'Baru',
     'dihubungi': 'Sudah Dihubungi',
     'janji-bayar': 'Janji Bayar',
     'tidak-merespons': 'Tidak Merespons',
     'sudah-bayar': 'Sudah Bayar',
 };
 
-const columnOrder: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
+const columnOrder: FollowUpStatus[] = ['dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
 
 interface KanbanBoardProps {
     customers: Customer[];
@@ -60,7 +59,7 @@ export default function KanbanBoard({ customers, setCustomers }: KanbanBoardProp
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto p-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto p-1">
                 {columnOrder.map(columnId => {
                     const columnCustomers = customers.filter(c => c.follow_up_status === columnId);
                     return (

@@ -1,6 +1,6 @@
 
 
-export type FollowUpStatus = 'baru' | 'dihubungi' | 'janji-bayar' | 'tidak-merespons' | 'sudah-bayar';
+export type FollowUpStatus = 'dihubungi' | 'janji-bayar' | 'tidak-merespons' | 'sudah-bayar';
 
 export interface Customer {
   id: string;
