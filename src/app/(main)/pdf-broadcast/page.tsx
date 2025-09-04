@@ -432,7 +432,6 @@ Terima Kasih`;
                   <TableHead>SM (Sewa Modal)</TableHead>
                   <TableHead>Telp/HP</TableHead>
                   <TableHead>Alamat</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Status Follow-up</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -440,14 +439,14 @@ Terima Kasih`;
               <TableBody>
                 {isLoading ? (
                      <TableRow>
-                        <TableCell colSpan={14} className="h-24 text-center">
+                        <TableCell colSpan={13} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">AI is extracting data from the PDF...</p>
                         </TableCell>
                     </TableRow>
                 ) : extractedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={14} className="h-24 text-center">
+                      <TableCell colSpan={13} className="h-24 text-center">
                           No data extracted. Click "Import PDF" to begin.
                       </TableCell>
                     </TableRow>
@@ -474,7 +473,6 @@ Terima Kasih`;
                       <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
                       <TableCell>{customer.phone_number}</TableCell>
                       <TableCell>{customer.alamat}</TableCell>
-                      <TableCell>{customer.status}</TableCell>
                       <TableCell>
                         <Select
                             value={customer.follow_up_status}
