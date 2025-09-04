@@ -60,12 +60,8 @@ const parseDateForFormatting = (dateString: string): Date | null => {
 const formatDate = (dateString: string) => {
     const date = parseDateForFormatting(dateString);
     if (!date) return 'N/A';
-    
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // JS months are 0-indexed
-    const year = date.getFullYear();
-
-    return `${day}-${month}-${year}`;
+    // Use 'id-ID' locale for full month name formatting in the message
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 const formatCurrency = (value: number) => {
@@ -559,5 +555,7 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
 
     
