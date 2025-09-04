@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Scale, Loader2 } from 'lucide-react';
+import { Scale, Loader2, Eye, EyeOff } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -44,6 +44,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -117,7 +118,22 @@ export default function LoginPage() {
                         <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
+                            <div className="relative">
+                                <Input 
+                                    type={showPassword ? "text" : "password"} 
+                                    placeholder="••••••••" 
+                                    {...field} 
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                </button>
+                            </div>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
