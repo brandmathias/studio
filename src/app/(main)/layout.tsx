@@ -71,7 +71,6 @@ export default function MainLayout({
   };
   
   const isJatuhTempoActive = pathname.startsWith('/pdf-broadcast') || pathname.startsWith('/xlsx-broadcast');
-  const isAnalisisNasabahActive = pathname.startsWith('/analisis-nasabah');
 
   return (
     <SidebarProvider>
@@ -135,36 +134,6 @@ export default function MainLayout({
                 </DropdownMenu>
             </SidebarMenuItem>
             
-             {/* Analisis Nasabah Dropdown */}
-             <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                     <button
-                      className={cn(
-                        'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 h-8',
-                         isAnalisisNasabahActive && 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
-                      )}
-                    >
-                      <BarChart3 />
-                      <span>Analisis Nasabah</span>
-                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="start" side="right" sideOffset={10}>
-                    <DropdownMenuLabel>Pilih Jenis Analisis</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push('/analisis-nasabah/prediksi-risiko')}>
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Prediksi Risiko Lelang</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/analisis-nasabah/rekomendasi-produk')}>
-                       <Lightbulb className="mr-2 h-4 w-4" />
-                      <span>Rekomendasi Produk</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-            </SidebarMenuItem>
-            
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => router.push('/history')}
@@ -176,16 +145,6 @@ export default function MainLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => router.push('/experiments')}
-                isActive={pathname.startsWith('/experiments')}
-                tooltip="Experiments"
-              >
-                <TestTube2 />
-                <span>Experiments</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -221,7 +180,7 @@ export default function MainLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-         <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
              <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
               <a
                 href="#"
