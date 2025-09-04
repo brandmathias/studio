@@ -81,7 +81,7 @@ export default function MainLayout({
               onClick={() => router.push('/dashboard')}
               className="flex items-center gap-2 text-primary"
             >
-            <Compass className="h-6 w-6" />
+            <Image src="/NAVIGA.ico" alt="NAVIGA Icon" width={24} height={24} />
             <span className="font-headline text-lg">NAVIGA</span>
           </button>
         </SidebarHeader>
@@ -190,7 +190,7 @@ export default function MainLayout({
                 onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
               >
-                <Compass className="h-6 w-6" />
+                <Image src="/NAVIGA.ico" alt="NAVIGA Icon" width={24} height={24} />
                 <span className="font-headline">NAVIGA</span>
               </button>
             </nav>

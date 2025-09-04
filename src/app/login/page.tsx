@@ -26,6 +26,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import Image from 'next/image';
+
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -90,7 +92,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-2xl animate-in fade-in-0 slide-in-from-bottom-10 duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center items-center gap-2 mb-2">
-            <Compass className="h-8 w-8 text-primary" />
+            <Image src="/NAVIGA.ico" alt="NAVIGA Icon" width={32} height={32} />
           </div>
           <CardTitle className="text-2xl font-headline">NAVIGA Admin</CardTitle>
           <CardDescription>Enter your credentials to access the dashboard</CardDescription>
