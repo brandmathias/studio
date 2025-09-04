@@ -54,13 +54,13 @@ const formatDate = (value: string | number): string => {
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
-const followUpStatusOptions: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'selesai'];
+const followUpStatusOptions: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
 const followUpStatusIndonesian: Record<FollowUpStatus, string> = {
   'baru': 'Baru',
   'dihubungi': 'Sudah Dihubungi',
   'janji-bayar': 'Janji Bayar',
   'tidak-merespons': 'Tidak Merespons',
-  'selesai': 'Selesai',
+  'sudah-bayar': 'Sudah Bayar',
 };
 
 

@@ -1,6 +1,6 @@
 
 
-export type FollowUpStatus = 'baru' | 'dihubungi' | 'janji-bayar' | 'tidak-merespons' | 'selesai';
+export type FollowUpStatus = 'baru' | 'dihubungi' | 'janji-bayar' | 'tidak-merespons' | 'sudah-bayar';
 
 export interface Customer {
   id: string;
@@ -96,5 +96,3 @@ export interface HistoryEntry {
   adminUser: string; // The admin user who performed the action
   template: string; // The message template used
 }
-
-    

@@ -23,10 +23,10 @@ const columns: Record<FollowUpStatus, string> = {
     'dihubungi': 'Sudah Dihubungi',
     'janji-bayar': 'Janji Bayar',
     'tidak-merespons': 'Tidak Merespons',
-    'selesai': 'Selesai',
+    'sudah-bayar': 'Sudah Bayar',
 };
 
-const columnOrder: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'selesai'];
+const columnOrder: FollowUpStatus[] = ['baru', 'dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
 
 interface KanbanBoardProps {
     customers: Customer[];

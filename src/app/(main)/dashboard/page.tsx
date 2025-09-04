@@ -166,8 +166,8 @@ interface UpcProfileData {
     mapUrl: string;
     streetViewUrl: string;
     staff: {
-        penaksir: { name: string; nip: string; status: 'Online' | 'Offline'; avatar: string },
-        kasir: { name: string; nip: string; status: 'Online' | 'Offline'; avatar: string },
+        penaksir: { name: string; nip: string; avatar: string },
+        kasir: { name: string; nip: string; avatar: string },
     }
 }
 
@@ -181,8 +181,8 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Wanea!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
         streetViewUrl: "https://www.google.com/maps/embed?pb=!4v1756820019859!6m8!1m7!1sURTplg6edk2jkLO08BLxXg!2m2!1d1.471982700633795!2d124.8378581836489!3f62.93597041625598!4f5.839056400493703!5f0.7820865974627469",
         staff: {
-            penaksir: { name: 'Christa Jashinta Paat', nip: 'P85395', status: 'Online', avatar: 'https://placehold.co/100x100/EEDD82/000000?text=CP' },
-            kasir: { name: 'Miranda Melina Irene Turangan', nip: 'ERA00362', status: 'Online', avatar: 'https://placehold.co/100x100/D8BFD8/000000?text=MT' },
+            penaksir: { name: 'Christa Jashinta Paat', nip: 'P85395', avatar: 'https://placehold.co/100x100/EEDD82/000000?text=CP' },
+            kasir: { name: 'Miranda Melina Irene Turangan', nip: 'ERA00362', avatar: 'https://placehold.co/100x100/D8BFD8/000000?text=MT' },
         }
     },
     'Pegadaian Ranotana': {
@@ -194,8 +194,8 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.520849202575!2d124.8398473152103!3d1.4746654989688465!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3287745d8d80f833%3A0xe54d898516b18861!2sPegadaian%20UPC%20Ranotana!5e0!3m2!1sen!2sid!4v1622013992789!5m2!1sen!2sid",
         streetViewUrl: "https://www.google.com/maps/embed?pb=!1m0!4v1719216962386!6m8!1m7!1sCAoSLEFGMVFpcE5MY3Z0OGdaVURFN2p0XzREdGo0V2hCcEJBTWpNVXN2d3ZqTFNr!2m2!1d1.4746025!2d124.8399583!3f240.23!4f-1.339999999999996!5f0.7820865974627469",
         staff: {
-            penaksir: { name: 'Michael Wowor', nip: 'P12345', status: 'Online', avatar: 'https://placehold.co/100x100/A0E6E6/000000?text=MW' },
-            kasir: { name: 'Jessica Manopo', nip: 'E67890', status: 'Offline', avatar: 'https://placehold.co/100x100/FFC0CB/000000?text=JM' },
+            penaksir: { name: 'Michael Wowor', nip: 'P12345', avatar: 'https://placehold.co/100x100/A0E6E6/000000?text=MW' },
+            kasir: { name: 'Jessica Manopo', nip: 'E67890', avatar: 'https://placehold.co/100x100/FFC0CB/000000?text=JM' },
         }
     },
     'N/A': { // Fallback for customers without a clear UPC
@@ -207,8 +207,8 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         mapUrl: "",
         streetViewUrl: "",
         staff: {
-            penaksir: { name: 'N/A', nip: 'N/A', status: 'Offline', avatar: '' },
-            kasir: { name: 'N/A', nip: 'N/A', status: 'Offline', avatar: '' },
+            penaksir: { name: 'N/A', nip: 'N/A', avatar: '' },
+            kasir: { name: 'N/A', nip: 'N/A', avatar: '' },
         }
     },
     'all': { // For Super Admin
@@ -220,8 +220,8 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
         mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.529126294488!2d106.845553315228!3d-6.19543199551694!2m3!1f0!2f0!3f0!3m2!1i1024!2i780!4f13.1!3m3!1m2!1s0x2e69f441b53e7c81%3A0x1d6a6c2a13f2a71!2sPT%20Pegadaian%20(Persero)%20Kantor%20Pusat!5e0!3m2!1sen!2sid!4v1622014120894!5m2!1sen!2sid",
         streetViewUrl: "https://www.google.com/maps/embed?pb=!1m0!4v1719217141382!6m8!1m7!1sCAoSLEFGMVFpcE5pTXZET21YNnFLdGdMQS1EM1pUcU5sYVdZb2dZWFItb2YxcmNP!2m2!1d-6.1953589!2d106.8455844!3f314.94!4f-2.22!5f0.7820865974627469",
         staff: {
-            penaksir: { name: 'System', nip: 'N/A', status: 'Online', avatar: '' },
-            kasir: { name: 'System', nip: 'N/A', status: 'Online', avatar: '' },
+            penaksir: { name: 'System', nip: 'N/A', avatar: '' },
+            kasir: { name: 'System', nip: 'N/A', avatar: '' },
         }
     },
 };
@@ -607,7 +607,7 @@ Terima Kasih`;
           { name: 'Dihubungi', value: statusCounts['dihubungi'] || 0, fill: 'hsl(var(--chart-2))' },
           { name: 'Janji Bayar', value: statusCounts['janji-bayar'] || 0, fill: 'hsl(var(--chart-3))' },
           { name: 'Tdk Respons', value: statusCounts['tidak-merespons'] || 0, fill: 'hsl(var(--chart-4))' },
-          { name: 'Selesai', value: statusCounts['selesai'] || 0, fill: 'hsl(var(--chart-5))' },
+          { name: 'Sudah Bayar', value: statusCounts['sudah-bayar'] || 0, fill: 'hsl(var(--chart-5))' },
       ];
       return data.filter(d => d.value > 0);
   }, [customers]);
@@ -994,15 +994,3 @@ Terima Kasih`;
     </div>
   );
 }
-
-    
-
-    
-
-
-
-
-
-
-
-    
