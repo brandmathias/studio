@@ -452,14 +452,14 @@ Terima Kasih`;
               <TableBody>
                 {isLoading ? (
                      <TableRow>
-                        <TableCell colSpan={13} className="h-24 text-center">
+                        <TableCell colSpan={12} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">AI is extracting data from the PDF...</p>
                         </TableCell>
                     </TableRow>
                 ) : extractedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={13} className="h-24 text-center">
+                      <TableCell colSpan={12} className="h-24 text-center">
                           No data extracted. Click "Import PDF" to begin.
                       </TableCell>
                     </TableRow>
@@ -555,7 +555,3 @@ Terima Kasih`;
     </main>
   );
 }
-
-    
-
-    
