@@ -30,11 +30,14 @@ import {
 
 export default function HistoryPage() {
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
-  const [dateFilter, setDateFilter] = React.useState<Date | undefined>(startOfToday());
+  const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast'>('all');
   const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc']>('all');
 
   React.useEffect(() => {
+    // Set initial date filter on the client to avoid hydration mismatch
+    setDateFilter(startOfToday());
+
     try {
       const storedUser = localStorage.getItem('loggedInUser');
       const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
