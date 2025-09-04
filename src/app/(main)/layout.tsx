@@ -76,10 +76,13 @@ export default function MainLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <Scale className="h-6 w-6 text-primary" />
+           <button
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center gap-2 text-primary"
+            >
+            <Scale className="h-6 w-6" />
             <span className="font-headline text-lg">GadaiAlert</span>
-          </div>
+          </button>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
@@ -182,13 +185,13 @@ export default function MainLayout({
       <SidebarInset>
          <header className="sticky top-0 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex">
              <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6 w-full">
-              <a
-                href="#"
+              <button
+                onClick={() => router.push('/dashboard')}
                 className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
               >
                 <Scale className="h-6 w-6" />
                 <span className="font-headline">GadaiAlert</span>
-              </a>
+              </button>
             </nav>
         </header>
         {children}
