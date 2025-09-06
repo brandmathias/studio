@@ -146,7 +146,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen w-full flex-col bg-background">
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight font-headline">
             Profil Unit Pelayanan Cabang (UPC)
           </h1>
         </div>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
           {/* UPC Profile Card */}
           <Card className="transition-shadow duration-200 hover:shadow-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                 <Building className="h-6 w-6 text-primary" />
                 Profil {profileData.name}
               </CardTitle>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Staff Cards */}
             <Card className="transition-shadow duration-200 hover:shadow-xl">
-              <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+              <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={profileData.staff.penaksir.avatar} />
                   <AvatarFallback>
@@ -235,18 +235,18 @@ export default function DashboardPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-lg">Penaksir</CardTitle>
-                  <p className="text-base font-semibold">
+                  <CardTitle className="text-base md:text-lg">Penaksir</CardTitle>
+                  <p className="text-sm md:text-base font-semibold">
                     {profileData.staff.penaksir.name}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     NIP: {profileData.staff.penaksir.nip}
                   </p>
                 </div>
               </CardHeader>
             </Card>
             <Card className="transition-shadow duration-200 hover:shadow-xl">
-              <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+              <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={profileData.staff.kasir.avatar} />
                   <AvatarFallback>
@@ -254,11 +254,11 @@ export default function DashboardPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-lg">Kasir</CardTitle>
-                  <p className="text-base font-semibold">
+                  <CardTitle className="text-base md:text-lg">Kasir</CardTitle>
+                  <p className="text-sm md:text-base font-semibold">
                     {profileData.staff.kasir.name}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     NIP: {profileData.staff.kasir.nip}
                   </p>
                 </div>

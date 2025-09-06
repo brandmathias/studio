@@ -380,7 +380,7 @@ Terima Kasih`;
   };
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <main className="flex flex-1 flex-col gap-4 p-2 md:gap-8 md:p-8">
        {activeVoicenote && (
           <VoicenotePreviewDialog
             isOpen={!!activeVoicenote}
@@ -395,7 +395,7 @@ Terima Kasih`;
           />
         )}
       <div className="flex items-center">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">Gadaian Broadcast</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight font-headline">Gadaian Broadcast</h1>
       </div>
       <Card>
         <CardHeader>
@@ -406,7 +406,7 @@ Terima Kasih`;
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-            <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+            <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="w-full md:w-auto">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                 {isLoading ? 'Processing...' : 'Import PDF'}
             </Button>
@@ -418,7 +418,7 @@ Terima Kasih`;
                 accept=".pdf"
             />
             <div className="flex-grow"></div>
-            <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0 || isLoading}>
+            <Button onClick={handleNotifySelected} disabled={selectedCustomers.size === 0 || isLoading} className="w-full md:w-auto">
               <Send className="mr-2 h-4 w-4" />
               Notify Selected ({selectedCustomers.size})
             </Button>
@@ -427,7 +427,7 @@ Terima Kasih`;
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40px]">
+                  <TableHead className="w-[40px] px-2 md:px-4">
                     <Checkbox 
                       checked={selectedCustomers.size > 0 && selectedCustomers.size === extractedData.length && extractedData.length > 0}
                       onCheckedChange={(checked) => handleSelectAll(!!checked)}
@@ -437,14 +437,14 @@ Terima Kasih`;
                   </TableHead>
                   <TableHead>No. SBG</TableHead>
                   <TableHead>Nasabah</TableHead>
-                  <TableHead>Rubrik</TableHead>
+                  <TableHead className="hidden md:table-cell">Rubrik</TableHead>
                   <TableHead>Tgl. Kredit &amp; Jth Tempo</TableHead>
-                  <TableHead>Barang Jaminan</TableHead>
-                  <TableHead>Taksiran</TableHead>
+                  <TableHead className="hidden lg:table-cell">Barang Jaminan</TableHead>
+                  <TableHead className="hidden lg:table-cell">Taksiran</TableHead>
                   <TableHead>UP (Uang Pinjaman)</TableHead>
-                  <TableHead>SM (Sewa Modal)</TableHead>
-                  <TableHead>Telp/HP</TableHead>
-                  <TableHead>Alamat</TableHead>
+                  <TableHead className="hidden lg:table-cell">SM (Sewa Modal)</TableHead>
+                  <TableHead className="hidden md:table-cell">Telp/HP</TableHead>
+                  <TableHead className="hidden xl:table-cell">Alamat</TableHead>
                   <TableHead>Status Follow-up</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -479,32 +479,32 @@ Terima Kasih`;
 
                     return (
                     <TableRow key={customer.sbg_number || index} data-state={selectedCustomers.has(customer.sbg_number) ? 'selected' : ''}>
-                      <TableCell>
+                      <TableCell className="px-2 md:px-4">
                         <Checkbox
                             checked={selectedCustomers.has(customer.sbg_number)}
                             onCheckedChange={(checked) => handleSelectCustomer(customer.sbg_number, !!checked)}
                             aria-label={`Select ${customer.name}`}
                         />
                       </TableCell>
-                      <TableCell className="font-mono">{customer.sbg_number}</TableCell>
-                      <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell>{customer.rubrik}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-mono text-xs">{customer.sbg_number}</TableCell>
+                      <TableCell className="font-medium text-sm">{customer.name}</TableCell>
+                      <TableCell className="hidden md:table-cell">{customer.rubrik}</TableCell>
+                      <TableCell className="text-xs">
                         <div>{formatDate(displayCreditDate)}</div>
                         <div className='font-bold'>{formatDate(displayDueDate)}</div>
                       </TableCell>
-                      <TableCell>{customer.barang_jaminan}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(customer.loan_value)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
-                      <TableCell>{customer.phone_number}</TableCell>
-                      <TableCell>{customer.alamat}</TableCell>
+                      <TableCell className="hidden lg:table-cell text-xs">{customer.barang_jaminan}</TableCell>
+                      <TableCell className="text-right hidden lg:table-cell">{formatCurrency(customer.taksiran)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(customer.loan_value)}</TableCell>
+                      <TableCell className="text-right hidden lg:table-cell">{formatCurrency(customer.sewa_modal)}</TableCell>
+                      <TableCell className="hidden md:table-cell">{customer.phone_number}</TableCell>
+                      <TableCell className="hidden xl:table-cell text-xs">{customer.alamat}</TableCell>
                       <TableCell>
                         <Select
                             value={customer.follow_up_status}
                             onValueChange={(value) => handleStatusChange(customer.sbg_number, value as FollowUpStatus)}
                         >
-                            <SelectTrigger className="w-[150px]">
+                            <SelectTrigger className="w-full min-w-[140px] text-xs h-9">
                                 <SelectValue placeholder="Set Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -517,7 +517,7 @@ Terima Kasih`;
                         </Select>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-center gap-1">
                            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button size="sm" variant="outline"><ClipboardCopy className="h-4 w-4" /></Button>
@@ -569,5 +569,3 @@ Terima Kasih`;
     </main>
   );
 }
-
-    

@@ -86,9 +86,9 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <main className="flex flex-1 flex-col gap-4 p-2 md:gap-8 md:p-8">
       <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">Riwayat Aktivitas Broadcast</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight font-headline">Riwayat Aktivitas Broadcast</h1>
       </div>
       <Card>
         <CardHeader>
@@ -138,12 +138,12 @@ export default function HistoryPage() {
                     </Select>
                  </div>
                  {(dateFilter || typeFilter !== 'all') && (
-                    <Button variant="ghost" onClick={clearFilters}>
+                    <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto">
                         Bersihkan Filter
                     </Button>
                 )}
                 <div className="hidden md:flex flex-grow"></div>
-                 <Button variant="destructive" onClick={clearHistory} className="w-full md:w-auto">
+                 <Button variant="destructive" onClick={clearHistory} className="w-full md:w-auto mt-2 md:mt-0">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Bersihkan Riwayat
                 </Button>
@@ -153,11 +153,11 @@ export default function HistoryPage() {
                 <TableHeader>
                     <TableRow>
                     <TableHead>Waktu</TableHead>
-                    <TableHead>Jenis Broadcast</TableHead>
+                    <TableHead className="hidden sm:table-cell">Jenis</TableHead>
                     <TableHead>Nasabah</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Template</TableHead>
-                    <TableHead>Admin</TableHead>
+                    <TableHead className="hidden md:table-cell">Template</TableHead>
+                    <TableHead className="hidden md:table-cell">Admin</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -170,27 +170,27 @@ export default function HistoryPage() {
                     ) : (
                     filteredHistory.map((entry) => (
                         <TableRow key={entry.id}>
-                        <TableCell>
-                            {format(new Date(entry.timestamp), 'dd MMM yyyy, HH:mm:ss', { locale: id })}
+                        <TableCell className="text-xs">
+                            {format(new Date(entry.timestamp), 'dd MMM yy, HH:mm', { locale: id })}
                         </TableCell>
-                        <TableCell>
-                           <Badge variant={entry.type === 'Gadaian Broadcast' ? 'default' : 'secondary'} className="capitalize">
+                        <TableCell className="hidden sm:table-cell">
+                           <Badge variant={entry.type === 'Gadaian Broadcast' ? 'default' : 'secondary'} className="capitalize text-xs">
                                 {entry.type}
                             </Badge>
                         </TableCell>
                         <TableCell>
-                            <div className="font-medium">{entry.customerName}</div>
-                            <div className="text-sm text-muted-foreground">{entry.customerIdentifier}</div>
+                            <div className="font-medium text-sm">{entry.customerName}</div>
+                            <div className="text-xs text-muted-foreground">{entry.customerIdentifier}</div>
                         </TableCell>
                         <TableCell>
-                            <Badge variant={entry.status === 'Pesan Disalin' ? 'outline' : 'default'} className={cn(entry.status !== 'Pesan Disalin' && 'bg-green-600')}>{entry.status}</Badge>
+                            <Badge variant={entry.status === 'Pesan Disalin' ? 'outline' : 'default'} className={cn('text-xs', entry.status !== 'Pesan Disalin' && 'bg-green-600')}>{entry.status}</Badge>
                         </TableCell>
-                        <TableCell>
-                             <Badge variant={getTemplateBadgeVariant(entry.template)} className="capitalize">
+                        <TableCell className="hidden md:table-cell">
+                             <Badge variant={getTemplateBadgeVariant(entry.template)} className="capitalize text-xs">
                                 {entry.template}
                             </Badge>
                         </TableCell>
-                        <TableCell>{entry.adminUser}</TableCell>
+                        <TableCell className="hidden md:table-cell text-sm">{entry.adminUser}</TableCell>
                         </TableRow>
                     ))
                     )}

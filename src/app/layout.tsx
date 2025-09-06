@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 export const metadata: Metadata = {
   title: 'NAVIGA (NAVIGASI GADAI)',
   description: 'Dashboard navigasi dan notifikasi gadai',
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({
