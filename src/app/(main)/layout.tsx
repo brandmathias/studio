@@ -14,6 +14,7 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarProvider,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -185,15 +186,13 @@ export default function MainLayout({
       </Sidebar>
       <SidebarInset>
          <header className="sticky top-0 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex justify-between">
-             <nav className="flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="flex items-center gap-2 text-lg font-semibold md:text-base text-primary"
-              >
-                <Image src="/logo.ico" alt="App Logo" width={40} height={40} />
-                <span className="font-headline">NAVIGA</span>
-              </button>
-            </nav>
+            <div className="flex items-center gap-2">
+                 <SidebarTrigger className="md:hidden" />
+                 <div className="hidden md:flex items-center gap-2 text-lg font-semibold text-primary">
+                    <Image src="/logo.ico" alt="App Logo" width={40} height={40} />
+                    <span className="font-headline">NAVIGA</span>
+                 </div>
+            </div>
             <div className="flex items-center">
               <Image 
                 src="/PegadaianLogo.png"
