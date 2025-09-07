@@ -4,10 +4,11 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-import type { Task, TaskBoardData } from '@/types';
+import type { Task, TaskBoardData, Column } from '@/types';
 import TaskKanbanBoard from '@/components/TaskKanbanBoard';
 import AddTaskDialog from '@/components/AddTaskDialog';
 import TaskDetailsDialog from '@/components/TaskDetailsDialog';
+import { Input } from '@/components/ui/input';
 
 const initialData: TaskBoardData = {
   tasks: {
@@ -43,6 +44,7 @@ export default function TasksPage() {
   
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
   const [isDetailsModalOpen, setDetailsModalOpen] = React.useState(false);
+  const [newColumnTitle, setNewColumnTitle] = React.useState('');
 
   // Load data from localStorage on mount
   React.useEffect(() => {
@@ -142,17 +144,53 @@ export default function TasksPage() {
      });
   };
 
+  const handleAddColumn = () => {
+    if (!newColumnTitle.trim()) return;
+    const newColumnId = `column-${Date.now()}`;
+    const newColumn: Column = {
+      id: newColumnId,
+      title: newColumnTitle,
+      taskIds: [],
+    };
+
+    setBoardData(prev => ({
+      ...prev,
+      columns: {
+        ...prev.columns,
+        [newColumnId]: newColumn,
+      },
+      columnOrder: [...prev.columnOrder, newColumnId],
+    }));
+    setNewColumnTitle('');
+  };
+
+
   return (
     <main className="flex flex-1 flex-col">
        <div className="flex items-center justify-between p-4 border-b bg-background">
           <h1 className="text-2xl font-bold tracking-tight font-headline">Lacak Tugas & Alur Kerja</h1>
-          <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])}>
+      </div>
+      
+      <div className="p-4 bg-background border-b flex flex-col md:flex-row items-center gap-4">
+        <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
               Tambah Tugas
-          </Button>
+        </Button>
+        <div className="flex-grow"></div>
+        <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
+            <Input 
+                placeholder="Nama kolom baru..." 
+                value={newColumnTitle}
+                onChange={e => setNewColumnTitle(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
+            />
+            <Button onClick={handleAddColumn} size="icon" className="flex-shrink-0">
+                <PlusCircle className="h-4 w-4" />
+            </Button>
+        </div>
       </div>
 
-      <div className="flex-grow">
+      <div className="flex-grow bg-muted/30">
           <TaskKanbanBoard boardData={boardData} setBoardData={setBoardData} onTaskClick={handleTaskClick} />
       </div>
 

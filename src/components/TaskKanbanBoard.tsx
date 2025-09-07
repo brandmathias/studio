@@ -19,7 +19,6 @@ interface TaskKanbanBoardProps {
 }
 
 export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }: TaskKanbanBoardProps) {
-  const [newColumnTitle, setNewColumnTitle] = React.useState('');
 
   const onDragEnd = (result: DropResult) => {
     const { destination, source, draggableId, type } = result;
@@ -93,26 +92,6 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
     setBoardData(newState);
   };
 
-  const handleAddColumn = () => {
-    if (!newColumnTitle.trim()) return;
-    const newColumnId = `column-${Date.now()}`;
-    const newColumn: Column = {
-      id: newColumnId,
-      title: newColumnTitle,
-      taskIds: [],
-    };
-
-    setBoardData(prev => ({
-      ...prev,
-      columns: {
-        ...prev.columns,
-        [newColumnId]: newColumn,
-      },
-      columnOrder: [...prev.columnOrder, newColumnId],
-    }));
-    setNewColumnTitle('');
-  };
-
   const handleDeleteColumn = (columnId: string) => {
     const newColumns = { ...boardData.columns };
     const tasksToDelete = newColumns[columnId].taskIds;
@@ -139,7 +118,7 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex gap-4 overflow-x-auto p-4 bg-muted/30 rounded-lg min-h-[calc(100vh-12rem)] items-start"
+            className="flex gap-4 overflow-x-auto p-4 min-h-[calc(100vh-16rem)] items-start"
           >
             {boardData.columnOrder.map((columnId, index) => {
               const column = boardData.columns[columnId];
@@ -180,7 +159,7 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
                                         <CardContent className="p-3">
                                           <p className="font-medium">{task.title}</p>
                                           <div className="flex justify-between items-center mt-2">
-                                            <div className="flex gap-1">
+                                            <div className="flex gap-1 flex-wrap">
                                                 {task.labels?.map(label => (
                                                     <Badge key={label} variant="secondary">{label}</Badge>
                                                 ))}
@@ -209,23 +188,6 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
               );
             })}
             {provided.placeholder}
-            <div className="w-[300px] flex-shrink-0">
-                <Card className="bg-muted/50 border-dashed">
-                    <CardContent className="p-2">
-                        <div className="flex items-center gap-2">
-                            <Input 
-                                placeholder="Nama kolom baru..." 
-                                value={newColumnTitle}
-                                onChange={e => setNewColumnTitle(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
-                            />
-                            <Button onClick={handleAddColumn} size="icon" className="flex-shrink-0">
-                                <PlusCircle className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
           </div>
         )}
       </Droppable>
