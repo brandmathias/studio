@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 interface User {
   name: string;
@@ -43,6 +45,8 @@ function NavContent() {
   const pathname = usePathname();
   const [user, setUser] = React.useState<User | null>(null);
   const { setOpenMobile } = useSidebar(); // Access the context here
+  const isMobile = useIsMobile();
+
 
   React.useEffect(() => {
     const updateUser = () => {
@@ -127,7 +131,12 @@ function NavContent() {
                       <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="start" side="right" sideOffset={10}>
+                   <DropdownMenuContent 
+                        className="w-56" 
+                        align="start" 
+                        side={isMobile ? 'bottom' : 'right'}
+                        sideOffset={isMobile ? 4 : 10}
+                    >
                     <DropdownMenuLabel>Pilih Jenis Broadcast</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => handleNavigate('/pdf-broadcast')}>
