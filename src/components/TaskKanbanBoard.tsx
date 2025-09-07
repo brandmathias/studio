@@ -118,7 +118,7 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex gap-4 overflow-x-auto p-4 min-h-[calc(100vh-16rem)] items-start"
+            className="flex gap-4 overflow-x-auto pb-4 items-start"
           >
             {boardData.columnOrder.map((columnId, index) => {
               const column = boardData.columns[columnId];
@@ -132,7 +132,7 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
                       {...provided.draggableProps}
                       className="w-[300px] flex-shrink-0"
                     >
-                      <Card className="bg-muted">
+                      <Card className="bg-muted/60">
                         <CardHeader className="p-2 flex-row items-center justify-between" {...provided.dragHandleProps}>
                             <h3 className="font-semibold text-base px-2">{column.title}</h3>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteColumn(column.id)}>
@@ -144,7 +144,7 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
                             <CardContent
                               ref={provided.innerRef}
                               {...provided.droppableProps}
-                              className={cn("p-2 pt-0 space-y-2 min-h-[100px] transition-colors", snapshot.isDraggingOver ? "bg-accent/20" : "")}
+                              className={cn("p-2 pt-0 space-y-2 min-h-[100px] transition-colors rounded-b-lg", snapshot.isDraggingOver ? "bg-accent/20" : "")}
                             >
                               {tasks.map((task, index) => (
                                 <Draggable key={task.id} draggableId={task.id} index={index}>
