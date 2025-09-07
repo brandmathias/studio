@@ -39,7 +39,7 @@ interface UpcProfileData {
 const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
   'Pegadaian Wanea': {
     name: 'UPC Wanea',
-    address: 'JL. Sam Ratulangi No.122, Wanea, Manado',
+    address: 'Jl. Sam Ratulangi No.54, Tanjung Batu, Kec. Wanea, Kota Manado, Sulawesi Utara',
     phone: '081142582666',
     operatingHours: 'Senin - Jumat: 08:00 - 15.30 dan Sabtu: 08:00 - 12:30',
     description:
