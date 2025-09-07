@@ -71,7 +71,9 @@ function NavContent() {
 
   const handleNavigate = (path: string) => {
     router.push(path);
-    setOpenMobile(false); // Close mobile sidebar on navigation
+    if (isMobile) {
+      setOpenMobile(false); // Close mobile sidebar on navigation
+    }
   };
 
   const handleLogout = () => {
