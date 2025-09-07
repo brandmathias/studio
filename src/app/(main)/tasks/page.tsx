@@ -180,8 +180,8 @@ export default function TasksPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                 <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                    <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
+                 <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center gap-2">
                         <Button onClick={handleAddColumn} size="icon">
                             <PlusCircle className="h-4 w-4" />
                         </Button>
@@ -192,7 +192,7 @@ export default function TasksPage() {
                             onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
                         />
                     </div>
-                    <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
+                    <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0] || 'column-1')}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Tambah Tugas
                     </Button>
