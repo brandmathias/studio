@@ -172,11 +172,6 @@ export default function TasksPage() {
       </div>
       
       <div className="p-4 bg-background border-b flex flex-col md:flex-row items-center gap-4">
-        <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Tambah Tugas
-        </Button>
-        <div className="flex-grow md:flex-grow-0"></div>
         <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
             <Button onClick={handleAddColumn} size="icon" className="flex-shrink-0">
                 <PlusCircle className="h-4 w-4" />
@@ -188,6 +183,11 @@ export default function TasksPage() {
                 onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
             />
         </div>
+        <div className="flex-grow"></div>
+        <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Tambah Tugas
+        </Button>
       </div>
 
       <div className="flex-grow bg-muted/30">
