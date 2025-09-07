@@ -183,7 +183,6 @@ export default function TasksPage() {
                 onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
             />
         </div>
-        <div className="flex-grow"></div>
         <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
               Tambah Tugas
