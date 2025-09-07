@@ -428,7 +428,7 @@ Terima Kasih`;
                <strong>Perhatian:</strong> Data nomor telepon tidak tersedia dalam file impor. Notifikasi WhatsApp akan menggunakan nomor placeholder untuk tujuan demonstrasi.
              </div>
             )}
-          <div className="rounded-lg border">
+          <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
