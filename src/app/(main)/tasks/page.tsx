@@ -9,6 +9,7 @@ import TaskKanbanBoard from '@/components/TaskKanbanBoard';
 import AddTaskDialog from '@/components/AddTaskDialog';
 import TaskDetailsDialog from '@/components/TaskDetailsDialog';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const initialData: TaskBoardData = {
   tasks: {
@@ -166,32 +167,43 @@ export default function TasksPage() {
 
 
   return (
-    <main className="flex flex-1 flex-col">
-       <div className="flex items-center justify-between p-4 border-b bg-background">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">Lacak Tugas & Alur Kerja</h1>
-      </div>
-      
-      <div className="p-4 bg-background border-b flex flex-col md:flex-row items-center gap-4">
-        <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
-            <Button onClick={handleAddColumn} size="icon" className="flex-shrink-0">
-                <PlusCircle className="h-4 w-4" />
-            </Button>
-            <Input 
-                placeholder="Nama kolom baru..." 
-                value={newColumnTitle}
-                onChange={e => setNewColumnTitle(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
-            />
+    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <div className="flex items-center">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight font-headline">Lacak Tugas & Alur Kerja</h1>
         </div>
-        <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Tambah Tugas
-        </Button>
-      </div>
 
-      <div className="flex-grow bg-muted/30">
-          <TaskKanbanBoard boardData={boardData} setBoardData={setBoardData} onTaskClick={handleTaskClick} />
-      </div>
+        <Card>
+             <CardHeader>
+                <CardTitle>Papan Tugas</CardTitle>
+                <CardDescription>
+                    Kelola alur kerja tim Anda dengan papan Kanban. Tambah tugas, atur kolom, dan pindahkan tugas sesuai progresnya.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+                    <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
+                        <Input 
+                            placeholder="Nama kolom baru..." 
+                            value={newColumnTitle}
+                            onChange={e => setNewColumnTitle(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
+                        />
+                        <Button onClick={handleAddColumn} size="icon">
+                            <PlusCircle className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    <div className="flex-grow"></div>
+                    <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Tambah Tugas
+                    </Button>
+                </div>
+
+                <div className="flex-grow">
+                    <TaskKanbanBoard boardData={boardData} setBoardData={setBoardData} onTaskClick={handleTaskClick} />
+                </div>
+            </CardContent>
+        </Card>
 
       {selectedColumnId && (
         <AddTaskDialog 
