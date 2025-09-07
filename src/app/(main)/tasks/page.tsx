@@ -176,17 +176,17 @@ export default function TasksPage() {
               <PlusCircle className="mr-2 h-4 w-4" />
               Tambah Tugas
         </Button>
-        <div className="flex-grow"></div>
+        <div className="flex-grow md:flex-grow-0"></div>
         <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
+            <Button onClick={handleAddColumn} size="icon" className="flex-shrink-0">
+                <PlusCircle className="h-4 w-4" />
+            </Button>
             <Input 
                 placeholder="Nama kolom baru..." 
                 value={newColumnTitle}
                 onChange={e => setNewColumnTitle(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
             />
-            <Button onClick={handleAddColumn} size="icon" className="flex-shrink-0">
-                <PlusCircle className="h-4 w-4" />
-            </Button>
         </div>
       </div>
 
