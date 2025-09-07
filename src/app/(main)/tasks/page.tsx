@@ -182,17 +182,16 @@ export default function TasksPage() {
             <CardContent>
                  <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
                     <div className="flex items-center gap-2 w-full md:w-auto md:max-w-xs">
+                        <Button onClick={handleAddColumn} size="icon">
+                            <PlusCircle className="h-4 w-4" />
+                        </Button>
                         <Input 
                             placeholder="Nama kolom baru..." 
                             value={newColumnTitle}
                             onChange={e => setNewColumnTitle(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleAddColumn()}
                         />
-                        <Button onClick={handleAddColumn} size="icon">
-                            <PlusCircle className="h-4 w-4" />
-                        </Button>
                     </div>
-                    <div className="flex-grow"></div>
                     <Button onClick={() => handleOpenAddTaskModal(boardData.columnOrder[0])} className="w-full md:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Tambah Tugas
