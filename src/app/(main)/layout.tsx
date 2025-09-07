@@ -15,6 +15,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,14 +37,12 @@ interface User {
   avatar?: string;
 }
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// Wrapper component to access sidebar context
+function NavContent() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = React.useState<User | null>(null);
+  const { setOpenMobile } = useSidebar(); // Access the context here
 
   React.useEffect(() => {
     const updateUser = () => {
@@ -66,20 +65,24 @@ export default function MainLayout({
     };
   }, []);
 
+  const handleNavigate = (path: string) => {
+    router.push(path);
+    setOpenMobile(false); // Close mobile sidebar on navigation
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('loggedInUser');
-    router.push('/login');
+    handleNavigate('/login');
   };
   
   const isJatuhTempoActive = pathname.startsWith('/pdf-broadcast') || pathname.startsWith('/xlsx-broadcast');
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <>
         <SidebarHeader>
            <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => handleNavigate('/dashboard')}
               className="flex items-center gap-2 text-primary"
             >
             <Image src="/logo.ico" alt="App Logo" width={40} height={40} />
@@ -90,7 +93,7 @@ export default function MainLayout({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                onClick={() => router.push('/dashboard')}
+                onClick={() => handleNavigate('/dashboard')}
                 isActive={pathname.startsWith('/dashboard')}
                 tooltip="Dashboard"
               >
@@ -100,7 +103,7 @@ export default function MainLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                onClick={() => router.push('/tasks')}
+                onClick={() => handleNavigate('/tasks')}
                 isActive={pathname.startsWith('/tasks')}
                 tooltip="Lacak Tugas"
               >
@@ -127,11 +130,11 @@ export default function MainLayout({
                   <DropdownMenuContent className="w-56" align="start" side="right" sideOffset={10}>
                     <DropdownMenuLabel>Pilih Jenis Broadcast</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push('/pdf-broadcast')}>
+                    <DropdownMenuItem onClick={() => handleNavigate('/pdf-broadcast')}>
                       <FileText className="mr-2 h-4 w-4" />
                       <span>Gadaian Broadcast</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push('/xlsx-broadcast')}>
+                    <DropdownMenuItem onClick={() => handleNavigate('/xlsx-broadcast')}>
                        <FileSpreadsheet className="mr-2 h-4 w-4" />
                       <span>Angsuran Broadcast</span>
                     </DropdownMenuItem>
@@ -141,7 +144,7 @@ export default function MainLayout({
             
             <SidebarMenuItem>
               <SidebarMenuButton
-                onClick={() => router.push('/history')}
+                onClick={() => handleNavigate('/history')}
                 isActive={pathname.startsWith('/history')}
                 tooltip="Riwayat"
               >
@@ -171,7 +174,7 @@ export default function MainLayout({
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                 <DropdownMenuItem onClick={() => router.push('/profile')}>
+                 <DropdownMenuItem onClick={() => handleNavigate('/profile')}>
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Profil</span>
                 </DropdownMenuItem>
@@ -183,9 +186,23 @@ export default function MainLayout({
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarFooter>
+    </>
+  );
+}
+
+
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <NavContent />
       </Sidebar>
       <SidebarInset>
-         <header className="sticky top-0 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex justify-between">
+         <header className="sticky top-0 z-40 h-16 items-center gap-4 border-b bg-background px-4 md:px-6 flex justify-between">
             <div className="flex items-center gap-2">
                  <SidebarTrigger className="md:hidden" />
                  <div className="hidden md:flex items-center gap-2 text-lg font-semibold text-primary">
