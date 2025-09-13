@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Send, Loader2, Mic, Bell, ClipboardCopy } from 'lucide-react';
-import type { BroadcastCustomer, HistoryEntry, Customer, FollowUpStatus } from '@/types';
+import type { BroadcastCustomer, HistoryEntry, Customer } from '@/types';
 import { Input } from '@/components/ui/input';
 import { parsePdf } from './actions';
 import { generateCustomerVoicenote } from '@/ai/flows/tts-flow';
@@ -26,8 +26,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 
 
 const parseDateForFormatting = (dateString: string): Date | null => {
@@ -83,14 +81,6 @@ const getUpcFromId = (id: string): Customer['upc'] => {
 type NotificationTemplate = 'jatuh-tempo' | 'keterlambatan' | 'peringatan-lelang';
 type ActionStatus = 'Notifikasi Terkirim' | 'Pesan Disalin';
 
-const followUpStatusOptions: FollowUpStatus[] = ['dihubungi', 'janji-bayar', 'tidak-merespons', 'sudah-bayar'];
-const followUpStatusIndonesian: Record<FollowUpStatus, string> = {
-  'dihubungi': 'Sudah Dihubungi',
-  'janji-bayar': 'Janji Bayar',
-  'tidak-merespons': 'Tidak Merespons',
-  'sudah-bayar': 'Sudah Bayar',
-};
-
 
 export default function PdfBroadcastPage() {
   const { toast } = useToast();
@@ -113,16 +103,6 @@ export default function PdfBroadcastPage() {
     whatsappUrl: string;
     customerName: string;
   } | null>(null);
-
-  const handleStatusChange = (sbgNumber: string, newStatus: FollowUpStatus) => {
-    setExtractedData(currentData => 
-        currentData.map(customer => 
-            customer.sbg_number === sbgNumber 
-                ? { ...customer, follow_up_status: newStatus } 
-                : customer
-        )
-    );
-  };
 
   const logHistory = (customer: BroadcastCustomer, status: ActionStatus, template: NotificationTemplate) => {
     try {
@@ -180,10 +160,7 @@ export default function PdfBroadcastPage() {
             results = results.filter(c => getUpcFromId(c.sbg_number) === adminUser.upc);
         }
         
-        // Initialize follow_up_status for each customer to 'dihubungi'
-        const resultsWithStatus = results.map(c => ({...c, follow_up_status: 'dihubungi' as FollowUpStatus}));
-
-        if (resultsWithStatus.length === 0) {
+        if (results.length === 0) {
             toast({
                 title: 'No Data Extracted',
                 description: adminUser.upc === 'all' 
@@ -192,10 +169,10 @@ export default function PdfBroadcastPage() {
                 variant: 'destructive',
             });
         } else {
-            setExtractedData(resultsWithStatus);
+            setExtractedData(results);
             toast({
                 title: 'Extraction Complete',
-                description: `${resultsWithStatus.length} records have been loaded from the PDF.`,
+                description: `${results.length} records have been loaded from the PDF.`,
             });
         }
     } catch (error: any) {
@@ -293,7 +270,6 @@ Terima Kasih`;
         description: `Pesan untuk ${customer.name} telah disalin ke clipboard.`,
       });
       logHistory(customer, 'Pesan Disalin', template);
-      handleStatusChange(customer.sbg_number, 'dihubungi');
     }).catch(err => {
       console.error('Failed to copy message: ', err);
       toast({
@@ -316,7 +292,6 @@ Terima Kasih`;
     
     window.open(whatsappUrl, '_blank');
     logHistory(customer, 'Notifikasi Terkirim', template);
-    handleStatusChange(customer.sbg_number, 'dihubungi');
   };
 
    const handleGenerateVoicenote = async (customer: BroadcastCustomer, template: NotificationTemplate) => {
@@ -339,7 +314,6 @@ Terima Kasih`;
             whatsappUrl,
             customerName: customer.name,
         });
-        handleStatusChange(customer.sbg_number, 'dihubungi');
     } catch (error) {
         console.error('Voicenote generation failed:', error);
         toast({
@@ -445,21 +419,20 @@ Terima Kasih`;
                   <TableHead className="hidden lg:table-cell">SM (Sewa Modal)</TableHead>
                   <TableHead className="hidden md:table-cell">Telp/HP</TableHead>
                   <TableHead className="hidden xl:table-cell">Alamat</TableHead>
-                  <TableHead>Status Follow-up</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                      <TableRow>
-                        <TableCell colSpan={12} className="h-24 text-center">
+                        <TableCell colSpan={11} className="h-24 text-center">
                             <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                             <p className="mt-2 text-muted-foreground">AI is extracting data from the PDF...</p>
                         </TableCell>
                     </TableRow>
                 ) : extractedData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={12} className="h-24 text-center">
+                      <TableCell colSpan={11} className="h-24 text-center">
                           No data extracted. Click "Import PDF" to begin.
                       </TableCell>
                     </TableRow>
@@ -499,23 +472,6 @@ Terima Kasih`;
                       <TableCell className="text-right hidden lg:table-cell">{formatCurrency(customer.sewa_modal)}</TableCell>
                       <TableCell className="hidden md:table-cell">{customer.phone_number}</TableCell>
                       <TableCell className="hidden xl:table-cell text-xs">{customer.alamat}</TableCell>
-                      <TableCell>
-                        <Select
-                            value={customer.follow_up_status}
-                            onValueChange={(value) => handleStatusChange(customer.sbg_number, value as FollowUpStatus)}
-                        >
-                            <SelectTrigger className="w-full min-w-[140px] text-xs h-9">
-                                <SelectValue placeholder="Set Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {followUpStatusOptions.map(status => (
-                                    <SelectItem key={status} value={status}>
-                                        {followUpStatusIndonesian[status]}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col sm:flex-row items-center gap-1">
                            <DropdownMenu>
@@ -569,3 +525,5 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
