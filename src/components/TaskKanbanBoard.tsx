@@ -150,6 +150,9 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
                                 <Draggable key={task.id} draggableId={task.id} index={index}>
                                   {(provided) => (
                                     <div
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                    <div
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
@@ -174,6 +177,7 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
                                         </CardContent>
                                       </Card>
                                     </div>
+                                    </div>
                                   )}
                                 </Draggable>
                               ))}
@@ -194,3 +198,5 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
     </DragDropContext>
   );
 }
+
+    
