@@ -17,7 +17,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon, TrendingUp } from 'lucide-react';
+import { LogOut, LayoutDashboard, ClipboardList, ChevronDown, FileUp, FileText, FileSpreadsheet, History, User as UserIcon, ArrowUpToLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -150,7 +150,7 @@ function NavContent() {
                       <span>Angsuran Broadcast</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleNavigate('/mt-broadcast')}>
-                       <TrendingUp className="mr-2 h-4 w-4" />
+                       <ArrowUpToLine className="mr-2 h-4 w-4" />
                       <span>MT Broadcast</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
