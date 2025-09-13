@@ -72,7 +72,10 @@ export default function TasksPage() {
       const storedUser = localStorage.getItem('loggedInUser');
       const upc = storedUser ? JSON.parse(storedUser).upc : 'all';
       const storageKey = `taskBoardData_${upc}`;
-      localStorage.setItem(storageKey, JSON.stringify(boardData));
+      // Do not save the initial data state on first render
+      if (boardData !== initialData) {
+        localStorage.setItem(storageKey, JSON.stringify(boardData));
+      }
     } catch (error) {
       console.error("Failed to save task board data to localStorage", error);
     }
@@ -182,8 +185,8 @@ export default function TasksPage() {
             <CardContent>
                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                        <div className="flex items-center gap-2 w-full">
-                            <Button onClick={handleAddColumn} size="icon">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <Button onClick={handleAddColumn} size="icon" autoFocus>
                                 <PlusCircle className="h-4 w-4" />
                             </Button>
                             <Input 
@@ -201,7 +204,9 @@ export default function TasksPage() {
                 </div>
 
                 <div className="overflow-x-auto pb-4">
+                  <div onClick={(e) => e.stopPropagation()}>
                     <TaskKanbanBoard boardData={boardData} setBoardData={setBoardData} onTaskClick={handleTaskClick} />
+                  </div>
                 </div>
             </CardContent>
         </Card>
