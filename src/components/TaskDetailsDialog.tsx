@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/types';
 import { Badge } from './ui/badge';
-import { Calendar as CalendarIcon, User, Tag, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Tag, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
@@ -28,8 +28,6 @@ interface TaskDetailsDialogProps {
   onUpdateTask: (updatedTask: Task) => void;
   onDeleteTask: (taskId: string) => void;
 }
-
-const mockAssignees = ['Admin 1', 'Admin 2', 'User A', 'User B'];
 
 export default function TaskDetailsDialog({ isOpen, onClose, task, onUpdateTask, onDeleteTask }: TaskDetailsDialogProps) {
   const [currentTask, setCurrentTask] = useState<Task | null>(task);
@@ -91,18 +89,6 @@ export default function TaskDetailsDialog({ isOpen, onClose, task, onUpdateTask,
                 />
             </div>
             
-             <div className="space-y-2">
-                <Label className="flex items-center gap-2"><User className="h-4 w-4"/> Penanggung Jawab</Label>
-                 <select
-                    value={currentTask.assignee?.name || ''}
-                    onChange={e => handleUpdate('assignee', { name: e.target.value, avatar: `https://placehold.co/40x40?text=${e.target.value.charAt(0)}` })}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                 >
-                    <option value="">Tidak Ditugaskan</option>
-                    {mockAssignees.map(name => <option key={name} value={name}>{name}</option>)}
-                 </select>
-            </div>
-
             <div className="space-y-2">
                  <Label className="flex items-center gap-2"><CalendarIcon className="h-4 w-4"/> Batas Waktu</Label>
                  <Popover>

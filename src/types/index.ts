@@ -49,10 +49,6 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  assignee?: {
-    name: string;
-    avatar?: string;
-  };
   labels?: string[];
   dueDate?: string;
 }
@@ -114,4 +110,3 @@ export interface HistoryEntry {
   adminUser: string; // The admin user who performed the action
   template: string; // The message template used
 }
-

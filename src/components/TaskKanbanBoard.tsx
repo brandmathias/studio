@@ -4,13 +4,11 @@
 import * as React from 'react';
 import { DragDropContext, Droppable, Draggable, OnDragEndResponder, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { Task, Column, TaskBoardData } from '@/types';
 import { cn } from '@/lib/utils';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 
 interface TaskKanbanBoardProps {
   boardData: TaskBoardData;
@@ -167,12 +165,6 @@ export default function TaskKanbanBoard({ boardData, setBoardData, onTaskClick }
                                                     <Badge key={label} variant="secondary">{label}</Badge>
                                                 ))}
                                             </div>
-                                            {task.assignee && (
-                                                <Avatar className="h-7 w-7">
-                                                    <AvatarImage src={task.assignee.avatar} data-ai-hint="person face" />
-                                                    <AvatarFallback>{task.assignee.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                            )}
                                           </div>
                                         </CardContent>
                                       </Card>
