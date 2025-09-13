@@ -188,12 +188,22 @@ export default function XlsxBroadcastPage() {
                 const upcIdentifier = adminUser.upc === 'Pegadaian Wanea' ? 'wan' : 'ranotana';
                 customers = customers.filter(c => c.cab_outlet.toLowerCase().includes(upcIdentifier));
             }
-
-            setImportedData(customers);
-             toast({
-                title: 'Impor Selesai',
-                description: `${customers.length} data telah berhasil dimuat.`,
-            });
+            
+            if (customers.length === 0) {
+                 toast({
+                    title: 'Tidak Ada Data Ditemukan',
+                    description: adminUser.upc === 'all' 
+                        ? 'Tidak ada data nasabah yang dapat dibaca dari file.'
+                        : `Tidak ada data untuk cabang ${adminUser.upc} ditemukan di dalam file.`,
+                    variant: 'destructive',
+                });
+            } else {
+                setImportedData(customers);
+                toast({
+                    title: 'Impor Selesai',
+                    description: `${customers.length} data telah berhasil dimuat.`,
+                });
+            }
         } catch (error) {
             console.error("XLSX parsing error:", error);
             toast({
