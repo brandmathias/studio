@@ -31,7 +31,7 @@ import {
 export default function HistoryPage() {
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
-  const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast'>('all');
+  const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast' | 'MT Broadcast'>('all');
   const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc'] | null>(null);
   const [isClient, setIsClient] = React.useState(false);
 
@@ -77,6 +77,7 @@ export default function HistoryPage() {
   const getTemplateBadgeVariant = (template: string) => {
     if (template.includes('lelang')) return 'destructive';
     if (template.includes('keterlambatan')) return 'secondary';
+    if (template.includes('MT')) return 'outline'; // Specific for MT
     return 'outline';
   }
   
@@ -84,6 +85,20 @@ export default function HistoryPage() {
     setDateFilter(undefined);
     setTypeFilter('all');
   }
+  
+  const getBroadcastTypeBadgeVariant = (type: HistoryEntry['type']) => {
+    switch (type) {
+        case 'Gadaian Broadcast':
+            return 'default';
+        case 'Angsuran Broadcast':
+            return 'secondary';
+        case 'MT Broadcast':
+            return 'outline';
+        default:
+            return 'default';
+    }
+  };
+
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-2 md:gap-8 md:p-8">
@@ -134,6 +149,7 @@ export default function HistoryPage() {
                             <SelectItem value="all">Semua Jenis</SelectItem>
                             <SelectItem value="Gadaian Broadcast">Gadaian Broadcast</SelectItem>
                             <SelectItem value="Angsuran Broadcast">Angsuran Broadcast</SelectItem>
+                             <SelectItem value="MT Broadcast">MT Broadcast</SelectItem>
                         </SelectContent>
                     </Select>
                  </div>
@@ -174,7 +190,7 @@ export default function HistoryPage() {
                             {format(new Date(entry.timestamp), 'dd MMM yy, HH:mm', { locale: id })}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
-                           <Badge variant={entry.type === 'Gadaian Broadcast' ? 'default' : 'secondary'} className="capitalize text-xs">
+                           <Badge variant={getBroadcastTypeBadgeVariant(entry.type)} className="capitalize text-xs">
                                 {entry.type}
                             </Badge>
                         </TableCell>
@@ -202,3 +218,4 @@ export default function HistoryPage() {
     </main>
   );
 }
+
