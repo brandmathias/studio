@@ -64,7 +64,7 @@ const upcProfiles: Record<Customer['upc'] | 'all', UpcProfileData> = {
   'Pegadaian Ranotana': {
     name: 'UPC Ranotana',
     address: 'Jl. Sam Ratulangi No.400, Ranotana, Kec. Sario, Kota Manado, Sulawesi Utara',
-    phone: '082296985752',
+    phone: '081142584666',
     operatingHours: 'Senin - Jumat: 08.00 - 15.30 dan Sabtu 08.00 - 12.30',
     description:
       'Melayani area Ranotana dan sekitarnya dengan fokus pada gadai emas dan pinjaman modal usaha.',
