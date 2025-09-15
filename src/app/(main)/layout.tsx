@@ -82,7 +82,7 @@ function NavContent() {
     handleNavigate('/login');
   };
   
-  const isBroadcastActive = pathname.startsWith('/pdf-broadcast') || pathname.startsWith('/xlsx-broadcast') || pathname.startsWith('/mt-broadcast');
+  const isBroadcastActive = pathname.startsWith('/pdf-broadcast') || pathname.startsWith('/xlsx-broadcast');
 
   return (
     <>
@@ -148,10 +148,6 @@ function NavContent() {
                     <DropdownMenuItem onClick={() => handleNavigate('/xlsx-broadcast')}>
                        <FileSpreadsheet className="mr-2 h-4 w-4" />
                       <span>Angsuran Broadcast</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleNavigate('/mt-broadcast')}>
-                       <ArrowUpToLine className="mr-2 h-4 w-4" />
-                      <span>MT Broadcast</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

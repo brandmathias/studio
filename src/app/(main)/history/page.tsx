@@ -31,7 +31,7 @@ import {
 export default function HistoryPage() {
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
   const [dateFilter, setDateFilter] = React.useState<Date | undefined>();
-  const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast' | 'MT Broadcast'>('all');
+  const [typeFilter, setTypeFilter] = React.useState<'all' | 'Gadaian Broadcast' | 'Angsuran Broadcast'>('all');
   const [userUpc, setUserUpc] = React.useState<'all' | Customer['upc'] | null>(null);
   const [isClient, setIsClient] = React.useState(false);
 
@@ -77,7 +77,6 @@ export default function HistoryPage() {
   const getTemplateBadgeVariant = (template: string) => {
     if (template.includes('lelang')) return 'destructive';
     if (template.includes('keterlambatan')) return 'secondary';
-    if (template.includes('MT')) return 'outline'; // Specific for MT
     return 'outline';
   }
   
@@ -92,8 +91,6 @@ export default function HistoryPage() {
             return 'default';
         case 'Angsuran Broadcast':
             return 'secondary';
-        case 'MT Broadcast':
-            return 'outline';
         default:
             return 'default';
     }
@@ -149,7 +146,6 @@ export default function HistoryPage() {
                             <SelectItem value="all">Semua Jenis</SelectItem>
                             <SelectItem value="Gadaian Broadcast">Gadaian Broadcast</SelectItem>
                             <SelectItem value="Angsuran Broadcast">Angsuran Broadcast</SelectItem>
-                             <SelectItem value="MT Broadcast">MT Broadcast</SelectItem>
                         </SelectContent>
                     </Select>
                  </div>

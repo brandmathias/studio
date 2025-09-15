@@ -80,32 +80,14 @@ export interface InstallmentCustomer {
   kunjungan_terakhir: string;
 }
 
-export interface MTCustomer {
-  id: string;
-  cab_outlet: string;
-  product_nm: string;
-  no_kredit: string;
-  golongan: string;
-  tgl_kredit: string;
-  tgl_jatuh_t: string;
-  up: number;
-  up_max: number;
-  sm: number;
-  admin: number;
-  max_up_terima: number;
-  percent_mt: string;
-  // This field will be added client-side to hold the customer's name, as it's not in the file
-  nama_nasabah?: string; 
-}
-
-
 export interface HistoryEntry {
   id: string; // Unique ID for each log
   timestamp: string; // ISO string of when the action was performed
-  type: 'Gadaian Broadcast' | 'Angsuran Broadcast' | 'MT Broadcast'; // Type of broadcast
+  type: 'Gadaian Broadcast' | 'Angsuran Broadcast'; // Type of broadcast
   customerName: string; // Name of the customer contacted
   customerIdentifier: string; // SBG number or other customer ID
   status: string; // e.g., 'Notifikasi Terkirim', 'Pesan Disalin'
   adminUser: string; // The admin user who performed the action
   template: string; // The message template used
 }
+
