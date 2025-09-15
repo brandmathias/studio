@@ -78,7 +78,6 @@ export interface InstallmentCustomer {
   kewajiban: number;
   pencairan: string;
   kunjungan_terakhir: string;
-  follow_up_status: FollowUpStatus;
 }
 
 export interface MTCustomer {
