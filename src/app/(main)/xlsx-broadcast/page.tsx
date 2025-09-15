@@ -409,11 +409,6 @@ Terima Kasih`;
               Kirim Notifikasi ({selectedCustomers.size})
             </Button>
           </div>
-           {importedData.length > 0 && (
-             <div className="text-sm text-yellow-600 bg-yellow-50 p-3 rounded-md border border-yellow-200 mb-4">
-               <strong>Perhatian:</strong> Data nomor telepon tidak tersedia dalam file impor. Notifikasi WhatsApp akan menggunakan nomor placeholder untuk tujuan demonstrasi.
-             </div>
-            )}
           <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
