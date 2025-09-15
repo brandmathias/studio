@@ -487,16 +487,6 @@ Terima Kasih`;
                                     <DropdownMenuItem onClick={() => handleCopyMessage(customer, 'peringatan-lelang')}>Copy Peringatan Lelang</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                           <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button size="sm" variant="outline"><Bell className="h-4 w-4" /></Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => handleSendNotification(customer, 'jatuh-tempo')}>Kirim Pengingat</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleSendNotification(customer, 'keterlambatan')}>Kirim Keterlambatan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleSendNotification(customer, 'peringatan-lelang')}>Kirim Peringatan Lelang</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button size="sm" disabled={isGeneratingVoicenote}>
