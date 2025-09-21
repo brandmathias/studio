@@ -160,16 +160,16 @@ export default function HistoryPage() {
                     Bersihkan Riwayat
                 </Button>
             </div>
-            <div className="rounded-lg border">
+            <div className="rounded-lg border overflow-x-auto">
                 <Table>
                 <TableHeader>
                     <TableRow>
                     <TableHead>Waktu</TableHead>
-                    <TableHead className="hidden sm:table-cell">Jenis</TableHead>
+                    <TableHead>Jenis</TableHead>
                     <TableHead>Nasabah</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">Template</TableHead>
-                    <TableHead className="hidden md:table-cell">Admin</TableHead>
+                    <TableHead>Template</TableHead>
+                    <TableHead>Admin</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -185,7 +185,7 @@ export default function HistoryPage() {
                         <TableCell className="text-xs">
                             {format(new Date(entry.timestamp), 'dd MMM yy, HH:mm', { locale: id })}
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell">
+                        <TableCell>
                            <Badge variant={getBroadcastTypeBadgeVariant(entry.type)} className="capitalize text-xs">
                                 {entry.type}
                             </Badge>
@@ -197,12 +197,12 @@ export default function HistoryPage() {
                         <TableCell>
                             <Badge variant={entry.status === 'Pesan Disalin' ? 'outline' : 'default'} className={cn('text-xs', entry.status !== 'Pesan Disalin' && 'bg-green-600')}>{entry.status}</Badge>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell>
                              <Badge variant={getTemplateBadgeVariant(entry.template)} className="capitalize text-xs">
                                 {entry.template}
                             </Badge>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-sm">{entry.adminUser}</TableCell>
+                        <TableCell className="text-sm">{entry.adminUser}</TableCell>
                         </TableRow>
                     ))
                     )}
@@ -215,3 +215,4 @@ export default function HistoryPage() {
   );
 }
 
+    

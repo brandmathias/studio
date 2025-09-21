@@ -422,16 +422,16 @@ Terima Kasih`;
                     />
                   </TableHead>
                   <TableHead>Nasabah</TableHead>
-                  <TableHead className="hidden md:table-cell">Produk</TableHead>
-                  <TableHead className="hidden lg:table-cell">Pinjaman</TableHead>
+                  <TableHead>Produk</TableHead>
+                  <TableHead>Pinjaman</TableHead>
                   <TableHead>Osl</TableHead>
-                  <TableHead className="hidden lg:table-cell">Kol</TableHead>
-                  <TableHead className="hidden md:table-cell">Hr tung</TableHead>
-                  <TableHead className="hidden xl:table-cell">Tenor</TableHead>
+                  <TableHead>Kol</TableHead>
+                  <TableHead>Hr tung</TableHead>
+                  <TableHead>Tenor</TableHead>
                   <TableHead>Angsuran</TableHead>
                   <TableHead>Kewajiban</TableHead>
-                  <TableHead className="hidden md:table-cell">Pencairan</TableHead>
-                  <TableHead className="hidden xl:table-cell">Kunjungan Terakhir</TableHead>
+                  <TableHead>Pencairan</TableHead>
+                  <TableHead>Kunjungan Terakhir</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -460,16 +460,16 @@ Terima Kasih`;
                         />
                       </TableCell>
                       <TableCell className="font-medium whitespace-pre-line text-sm">{customer.nasabah}</TableCell>
-                      <TableCell className="whitespace-pre-line hidden md:table-cell text-xs">{customer.produk}</TableCell>
-                      <TableCell className="text-right hidden lg:table-cell">{formatCurrency(customer.pinjaman)}</TableCell>
+                      <TableCell className="whitespace-pre-line text-xs">{customer.produk}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.pinjaman)}</TableCell>
                       <TableCell className="text-right font-semibold">{formatCurrency(customer.osl)}</TableCell>
-                      <TableCell className="text-center hidden lg:table-cell">{customer.kol}</TableCell>
-                      <TableCell className="text-center hidden md:table-cell">{customer.hr_tung}</TableCell>
-                      <TableCell className="text-center hidden xl:table-cell">{customer.tenor}</TableCell>
+                      <TableCell className="text-center">{customer.kol}</TableCell>
+                      <TableCell className="text-center">{customer.hr_tung}</TableCell>
+                      <TableCell className="text-center">{customer.tenor}</TableCell>
                       <TableCell className="text-right">{formatCurrency(customer.angsuran)}</TableCell>
                       <TableCell className="text-right font-bold">{formatCurrency(customer.kewajiban)}</TableCell>
-                      <TableCell className="hidden md:table-cell">{customer.pencairan}</TableCell>
-                      <TableCell className="hidden xl:table-cell">{formatDate(customer.kunjungan_terakhir)}</TableCell>
+                      <TableCell>{customer.pencairan}</TableCell>
+                      <TableCell>{formatDate(customer.kunjungan_terakhir)}</TableCell>
                       <TableCell>
                         <div className="flex flex-col sm:flex-row items-center gap-1">
                            <DropdownMenu>
@@ -512,3 +512,5 @@ Terima Kasih`;
     </main>
   );
 }
+
+    

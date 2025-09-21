@@ -411,14 +411,14 @@ Terima Kasih`;
                   </TableHead>
                   <TableHead>No. SBG</TableHead>
                   <TableHead>Nasabah</TableHead>
-                  <TableHead className="hidden md:table-cell">Rubrik</TableHead>
+                  <TableHead>Rubrik</TableHead>
                   <TableHead>Tgl. Kredit &amp; Jth Tempo</TableHead>
-                  <TableHead className="hidden lg:table-cell">Barang Jaminan</TableHead>
-                  <TableHead className="hidden lg:table-cell">Taksiran</TableHead>
+                  <TableHead>Barang Jaminan</TableHead>
+                  <TableHead>Taksiran</TableHead>
                   <TableHead>UP (Uang Pinjaman)</TableHead>
-                  <TableHead className="hidden lg:table-cell">SM (Sewa Modal)</TableHead>
-                  <TableHead className="hidden md:table-cell">Telp/HP</TableHead>
-                  <TableHead className="hidden xl:table-cell">Alamat</TableHead>
+                  <TableHead>SM (Sewa Modal)</TableHead>
+                  <TableHead>Telp/HP</TableHead>
+                  <TableHead>Alamat</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -461,17 +461,17 @@ Terima Kasih`;
                       </TableCell>
                       <TableCell className="font-mono text-xs">{customer.sbg_number}</TableCell>
                       <TableCell className="font-medium text-sm">{customer.name}</TableCell>
-                      <TableCell className="hidden md:table-cell">{customer.rubrik}</TableCell>
+                      <TableCell>{customer.rubrik}</TableCell>
                       <TableCell className="text-xs">
                         <div>{formatDate(displayCreditDate)}</div>
                         <div className='font-bold'>{formatDate(displayDueDate)}</div>
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell text-xs">{customer.barang_jaminan}</TableCell>
-                      <TableCell className="text-right hidden lg:table-cell">{formatCurrency(customer.taksiran)}</TableCell>
+                      <TableCell className="text-xs">{customer.barang_jaminan}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.taksiran)}</TableCell>
                       <TableCell className="text-right font-semibold">{formatCurrency(customer.loan_value)}</TableCell>
-                      <TableCell className="text-right hidden lg:table-cell">{formatCurrency(customer.sewa_modal)}</TableCell>
-                      <TableCell className="hidden md:table-cell">{customer.phone_number}</TableCell>
-                      <TableCell className="hidden xl:table-cell text-xs">{customer.alamat}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(customer.sewa_modal)}</TableCell>
+                      <TableCell>{customer.phone_number}</TableCell>
+                      <TableCell className="text-xs">{customer.alamat}</TableCell>
                       <TableCell>
                         <div className="flex flex-col sm:flex-row items-center gap-1">
                            <DropdownMenu>
@@ -525,5 +525,7 @@ Terima Kasih`;
     </main>
   );
 }
+
+    
 
     
