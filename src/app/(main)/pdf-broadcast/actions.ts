@@ -1,3 +1,4 @@
+
 'use server';
 
 import { extractCustomersFromPdf } from '@/ai/flows/extract-from-pdf-flow';
@@ -34,12 +35,10 @@ export async function parsePdf(
       (c) => c.sbg_number && c.name && c.due_date
     );
 
-  } catch (err) {
-    // This catch block now handles errors from the action itself,
-    // while the flow handles its own internal errors.
+  } catch (err: any) {
+    // Re-throw the original error to show the real cause in the UI.
     console.error('Error in parsePdf action:', err);
-    throw new Error(
-      'AI processing failed. The PDF might be malformed or in an unexpected format.'
-    );
+    // We pass the original error message to the client.
+    throw new Error(err.message || 'An unknown AI processing error occurred.');
   }
 }
