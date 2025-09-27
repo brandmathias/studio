@@ -62,7 +62,7 @@ const extractCustomersFlow = ai.defineFlow(
   async ({ pdfDataUri }) => {
     try {
       const { output } = await ai.generate({
-        model: googleAI.model('gemini-1.5-flash-latest'),
+        model: googleAI.model('gemini-2.0-flash-latest'),
         output: { schema: ExtractCustomersOutputSchema },
         prompt: [
           {
