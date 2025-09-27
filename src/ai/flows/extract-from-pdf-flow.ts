@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import type { BroadcastCustomer } from '@/types';
+import { googleAI } from '@genkit-ai/googleai';
 
 const ExtractCustomersInputSchema = z.object({
   pdfDataUri: z
@@ -53,11 +53,20 @@ export async function extractCustomersFromPdf(
 }
 
 
-const prompt = ai.definePrompt({
-    name: 'extractCustomersFromPdfPrompt',
-    input: { schema: ExtractCustomersInputSchema },
-    output: { schema: ExtractCustomersOutputSchema },
-    prompt: `You are an expert data extraction agent for a pawnshop called Pegadaian. Your task is to extract all customer records from the provided PDF with extremely high accuracy.
+const extractCustomersFlow = ai.defineFlow(
+  {
+    name: 'extractCustomersFlow',
+    inputSchema: ExtractCustomersInputSchema,
+    outputSchema: ExtractCustomersOutputSchema,
+  },
+  async ({ pdfDataUri }) => {
+    try {
+      const { output } = await ai.generate({
+        model: googleAI.model('gemini-1.5-flash-latest'),
+        output: { schema: ExtractCustomersOutputSchema },
+        prompt: [
+          {
+            text: `You are an expert data extraction agent for a pawnshop called Pegadaian. Your task is to extract all customer records from the provided PDF with extremely high accuracy.
 
 **Critical Instructions:**
 1.  **Analyze the ENTIRE document**: First, go through all pages of the PDF from beginning to end to understand its structure and identify all customer records.
@@ -79,23 +88,11 @@ For each record, extract these fields into a structured JSON object:
 - **alamat**: Extract the full address.
 - **status**: Extract the current status.
 
-If the document is unreadable or contains no valid data, return an empty 'customers' array.
-
-Document for processing:
-{{media url=pdfDataUri}}
-`,
-});
-
-
-const extractCustomersFlow = ai.defineFlow(
-  {
-    name: 'extractCustomersFlow',
-    inputSchema: ExtractCustomersInputSchema,
-    outputSchema: ExtractCustomersOutputSchema,
-  },
-  async (input) => {
-    try {
-      const { output } = await prompt(input);
+If the document is unreadable or contains no valid data, return an empty 'customers' array.`,
+          },
+          { media: { url: pdfDataUri } },
+        ],
+      });
       // Safely return the output or an empty array if output is null/undefined
       return output || { customers: [] };
     } catch (error) {
