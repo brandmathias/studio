@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'NAVIGA (NAVIGASI GADAI)',
   description: 'Dashboard navigasi dan notifikasi gadai',
   viewport: 'width=device-width, initial-scale=1',
+  icons: [{ rel: 'icon', url: '/logo.ico' }],
 };
 
 export default function RootLayout({
@@ -16,7 +17,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.ico" sizes="any" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
