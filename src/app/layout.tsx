@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: 'NAVIGA (NAVIGASI GADAI)',
   description: 'Dashboard navigasi dan notifikasi gadai',
   viewport: 'width=device-width, initial-scale=1',
-  icons: [{ rel: 'icon', url: '/logo.ico' }],
+  icons: [{ rel: 'icon', url: '/logo.ico?v=2' }],
 };
 
 export default function RootLayout({
