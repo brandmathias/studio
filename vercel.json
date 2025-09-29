@@ -1,5 +1,10 @@
 
 {
+  "build": {
+    "env": {
+      "VERCEL_BUILD_ARGS": "--skip-stats --skip-framework-detection"
+    }
+  },
   "rewrites": [
     {
       "source": "/genkit/:path*",
